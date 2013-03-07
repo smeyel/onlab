@@ -16,7 +16,7 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.mycompany.opencv_start.R;
+import com.mycompany.opencvstart.R;
 
 public class MainActivity extends Activity implements CvCameraViewListener2, View.OnTouchListener {
 	
