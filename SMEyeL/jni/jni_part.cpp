@@ -32,6 +32,19 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindCircles(JNIEnv*, job
     Mat& mGr  = *(Mat*)addrGray;
     Mat& mRgb = *(Mat*)addrRgba;
 
+
+    // COLOR FILTERING
+//    Mat mHsv;
+//    cvtColor(mRgb, mHsv, COLOR_RGB2HSV, 3);
+//
+//    Mat mHSVThreshed;
+//    inRange(mHsv, Scalar(0, 100, 30), Scalar(5, 255, 255), mHSVThreshed);
+//
+//    Mat rgba;
+//    cvtColor(mHSVThreshed, mRgb, COLOR_GRAY2RGBA, 0);
+
+
+    // DETECTING CIRCLES
     // Reduce the noise so we avoid false circle detection
     GaussianBlur( mGr, mGr, Size(9, 9), 2, 2 );
 
@@ -47,5 +60,6 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindCircles(JNIEnv*, job
     	// draw the circle outline
     	circle( mRgb, center, radius, Scalar(0,0,255), 3, 8, 0 );
     }
+
 }
 }
