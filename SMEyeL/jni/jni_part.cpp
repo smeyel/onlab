@@ -4,8 +4,100 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <vector>
 
+#include <android/log.h>
+#include "libTwoColorCircleMarker/include/FastColorFilter.h"
+
+#define LOG_TAG "SMEyeL"
+#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
+
 using namespace std;
 using namespace cv;
+using namespace TwoColorCircleMarker;
+
+const char* stringToCharStar(string str) {
+	const char *cstr = str.c_str();
+	return cstr;
+}
+
+string intToString(int i) {
+	stringstream ss;
+	ss << i;
+	string str = ss.str();
+	return str;
+}
+
+const char* intToCharStar(int i) {
+	return stringToCharStar(intToString(i));
+}
+
+
+class MarkerHandler {
+private:
+	Mat *defaultColorCodeFrame;
+	Mat *defaultOverlapMask;
+	Mat *defaultVisColorCodeFrame;
+public:
+	Mat *colorCodeFrame;
+	Mat *overlapMask;
+	Mat *visColorCodeFrame;
+
+	FastColorFilter fastColorFilter;
+	MarkerHandler(){
+		defaultColorCodeFrame = NULL;
+		defaultOverlapMask = NULL;
+		defaultVisColorCodeFrame = NULL;
+	}
+	~MarkerHandler(){
+
+		if (defaultColorCodeFrame != NULL)
+		{
+			if (defaultColorCodeFrame == colorCodeFrame)
+			{
+				colorCodeFrame = NULL;
+			}
+			delete defaultColorCodeFrame;
+			defaultColorCodeFrame = NULL;
+		}
+		if (defaultOverlapMask != NULL)
+		{
+			if (defaultOverlapMask == overlapMask)
+			{
+				overlapMask = NULL;
+			}
+			delete defaultOverlapMask;
+			defaultOverlapMask = NULL;
+		}
+		if (defaultVisColorCodeFrame != NULL)
+		{
+			if (defaultVisColorCodeFrame == visColorCodeFrame)
+			{
+				visColorCodeFrame = NULL;
+			}
+			delete defaultVisColorCodeFrame;
+			defaultVisColorCodeFrame = NULL;
+		}
+
+	}
+	void init(int width, int height){
+		defaultColorCodeFrame = new Mat(height, width,CV_8UC1);
+		defaultOverlapMask = new Mat(height, width,CV_8UC1);
+		defaultVisColorCodeFrame = new Mat(height, width,CV_8UC3);
+
+		colorCodeFrame = defaultColorCodeFrame;
+		overlapMask = defaultOverlapMask;
+		visColorCodeFrame = defaultVisColorCodeFrame;
+
+		fastColorFilter.maskColorCode[0]=COLORCODE_RED;
+		fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
+		fastColorFilter.overlapMask=overlapMask;
+		fastColorFilter.backgroundColorCode=COLORCODE_WHT;
+	}
+	void processFrame(Mat &src){
+		fastColorFilter.FindMarkerCandidates(src,*colorCodeFrame);
+
+		fastColorFilter.VisualizeDecomposedImage(*colorCodeFrame,*visColorCodeFrame);
+	}
+};
 
 extern "C" {
 JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindFeatures(JNIEnv*, jobject, jlong addrGray, jlong addrRgba);
@@ -60,6 +152,33 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindCircles(JNIEnv*, job
     	// draw the circle outline
     	circle( mRgb, center, radius, Scalar(0,0,255), 3, 8, 0 );
     }
+
+}
+
+MarkerHandler markerHandler;
+
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject);
+
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject)
+{
+	markerHandler.init(800, 480);
+
+}
+
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FastColor(JNIEnv*, jobject, jlong addrInput, jlong addrResult);
+
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FastColor(JNIEnv*, jobject, jlong addrInput, jlong addrResult)
+{
+	Mat& mInput  = *(Mat*)addrInput;
+	Mat& mResult = *(Mat*)addrResult;
+
+	Mat mInputBgr;
+	cvtColor(mInput, mInputBgr, COLOR_RGBA2BGR);
+
+	markerHandler.processFrame(mInputBgr);
+
+	Mat* mOut = markerHandler.visColorCodeFrame;
+	cvtColor(*mOut, mResult, COLOR_BGR2RGBA);
 
 }
 }

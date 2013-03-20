@@ -25,6 +25,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	private Mat mRgba;
 	private Mat mGray;
 	
+	private Mat mResult;
+	
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 
         @Override
@@ -41,6 +43,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
                     
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                     mOpenCvCameraView.enableView();
+                    
+                    InitMarkerHandler();
                 } break;
                 default:
                 {
@@ -92,6 +96,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	public void onCameraViewStarted(int width, int height) {
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
 		mGray = new Mat(height, width, CvType.CV_8UC1);
+		mResult = new Mat();
 		
 	}
 
@@ -99,6 +104,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	public void onCameraViewStopped() {
 		mRgba.release();
 		mGray.release();
+		mResult.release();
 		
 	}
 
@@ -109,8 +115,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
         
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
-        FindCircles(mGray.getNativeObjAddr(), mRgba.getNativeObjAddr());
-		return mRgba;
+        //FindCircles(mGray.getNativeObjAddr(), mRgba.getNativeObjAddr());
+        FastColor(mRgba.getNativeObjAddr(), mResult.getNativeObjAddr());
+		return mResult;
 	}
 
 	@Override
@@ -121,5 +128,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	
 	public native void FindFeatures(long matAddrGr, long matAddrRgba);
 	public native void FindCircles(long matAddrGr, long matAddrRgba);
+	
+	public native void InitMarkerHandler();
+	public native void FastColor(long matAddrInput, long matAddrResult);
 
 }
