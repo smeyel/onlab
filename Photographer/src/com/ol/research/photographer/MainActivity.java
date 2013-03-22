@@ -15,6 +15,7 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Calendar;
 import java.util.Enumeration;
 
 import org.apache.http.client.methods.HttpGet;
@@ -45,7 +46,9 @@ public class MainActivity extends Activity {
 	// Socket s = null;
 	 String mClientMsg = "";
 	 Thread myCommsThread = null;
+	 String current_time = null;
 	 protected static final int MSG_ID = 0x1337;
+	 protected static final int TIME_ID = 0x1338;
 	 public static final int SERVERPORT = 6000;
 		
 	private PictureCallback mPicture = new PictureCallback() {
@@ -59,15 +62,23 @@ public class MainActivity extends Activity {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
                 fos.close();
+                
+               /* Calendar rightNow = Calendar.getInstance();
+               
+	             long offset = rightNow.get(Calendar.ZONE_OFFSET) + rightNow.get(Calendar.DST_OFFSET);
+	             long sinceMidnight = (rightNow.getTimeInMillis() + offset) % (24 * 60 * 60 * 1000);
+	             current_time = String.valueOf(sinceMidnight); */
+                
             } catch (FileNotFoundException e) {
-                Log.d("AutoCamera", "File not found: " + e.getMessage());
+                Log.d("Photographer", "File not found: " + e.getMessage());
             } catch (IOException e) {
-                Log.d("AutoCamera", "Error accessing file: " + e.getMessage());
+                Log.d("Photographer", "Error accessing file: " + e.getMessage());
             }
-            Log.v("AutoCamera", "Picture saved at path: " + pictureFile);
+            Log.v("Photographer", "Picture saved at path: " + pictureFile);
             
-            
-            
+            Message m = new Message();
+            m.what = TIME_ID;
+            myUpdateHandler.sendMessage(m);
             
         }
     };
@@ -80,10 +91,10 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		TextView tv = (TextView) findViewById(R.id.TextView01);
-	    tv.setText("Nothing from client yet");
+		//TextView tv = (TextView) findViewById(R.id.TextView01);
+	   // tv.setText("Nothing from client yet");
 		
-		Button btnHttpGet = (Button) findViewById(R.id.btnHttpBasicGet);
+		final Button btnHttpGet = (Button) findViewById(R.id.btnHttpGet);
 		btnHttpGet.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick (View arg0) {
@@ -95,16 +106,16 @@ public class MainActivity extends Activity {
 			}
 		});
 		
-		final Button captureButton = (Button) findViewById(R.id.buttonPhoto);
+		/*final Button captureButton = (Button) findViewById(R.id.buttonPhoto);
 		captureButton.setOnClickListener(
 				new View.OnClickListener() {
 					
 					@Override
 					public void onClick(View v) {
 						mCamera.takePicture(null, null, mPicture);
-						captureButton.setEnabled(false);
+						//captureButton.setEnabled(false);
 					}
-				});	
+				});	*/
 		
 		mCamera = Camera.open();
 
@@ -137,7 +148,12 @@ public class MainActivity extends Activity {
 	            TextView tv = (TextView) findViewById(R.id.TextView01);
 	            tv.setText(mClientMsg);
 	            break;
+	        case TIME_ID:
+	        	TextView tv2 = (TextView) findViewById(R.id.TextView01);
+	        	tv2.setText(current_time);
+	        	break;
 	        default:
+	        	
 	            break;
 	        }
 	        super.handleMessage(msg);
@@ -147,9 +163,10 @@ public class MainActivity extends Activity {
 	   class CommsThread implements Runnable {
 		    public void run() {
 		        Socket s = null;
-		    	s=null;
+		        //ServerSocket ss = null;
+		    	//s=null;
 		        try {
-		            ss = new ServerSocket(SERVERPORT );
+		            ss = new ServerSocket(SERVERPORT);
 		        } catch (IOException e) {
 		            e.printStackTrace();
 		        }
@@ -160,6 +177,7 @@ public class MainActivity extends Activity {
 		            m.what = MSG_ID;
 		            try {
 		                //if (s == null)
+		            	 	
 		                    s = ss.accept();
 		               // BufferedReader input = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		              //  String st = null;
@@ -207,6 +225,7 @@ public class MainActivity extends Activity {
 		                myUpdateHandler.sendMessage(m);
 		            } catch (IOException e) {
 		                e.printStackTrace();
+		                
 		            } catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -237,7 +256,7 @@ public class MainActivity extends Activity {
 				mCamera.release();
 			}
 		super.onStop();
-		myCommsThread.interrupt();
+		myCommsThread.interrupt(); //a socketkapcsolatra várakozó thread-et hogyan érdemes kezelni?
 		try {
 	        // make sure you close the socket upon exiting
 	        ss.close();
@@ -247,12 +266,12 @@ public class MainActivity extends Activity {
 		super.onStop();
 	}
 	
-	@Override
+	/*@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
-	}
+	}*/
 	
 
 	public String getLocalIpAddress() {

@@ -17,9 +17,8 @@
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
              android:layout_alignParentLeft="true"
-             android:layout_below="@+id/btnHttpBasicGet"
-             android:layout_toLeftOf="@+id/btnHttpBasicGet"
-             android:text="@string/Text" />
+             android:layout_below="@+id/btnHttpGet"
+             android:text="@string/TextView01" />
     
     <ImageView
         android:id="@+id/ivPhoto"
@@ -29,20 +28,17 @@
         android:visibility="gone"
         android:contentDescription="@string/ivPhoto"
         />
-    <Button
+   <!--  <Button
         android:id="@+id/buttonPhoto"
         android:text="@string/btnCapture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        />
+        />  -->
 
     <Button
-        android:id="@+id/btnHttpBasicGet"
-        android:layout_width="171dp"
-        android:layout_height="132dp"
-        android:layout_alignBottom="@+id/buttonPhoto"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
+        android:id="@+id/btnHttpGet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/btnReg" />
 
 </RelativeLayout>
