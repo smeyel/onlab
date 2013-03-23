@@ -7,7 +7,7 @@
 #include <opencv2/core/mat.hpp>
 
 #include "DetectionResultExporterBase.h"
-#include "TimeMeasurement.h"
+//#include "TimeMeasurement.h"
 
 using namespace cv;
 

@@ -44,7 +44,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                     mOpenCvCameraView.enableView();
                     
-                    InitMarkerHandler();
+                    InitMarkerHandler(800, 480);
                 } break;
                 default:
                 {
@@ -129,7 +129,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	public native void FindFeatures(long matAddrGr, long matAddrRgba);
 	public native void FindCircles(long matAddrGr, long matAddrRgba);
 	
-	public native void InitMarkerHandler();
+	public native void InitMarkerHandler(int width, int height);
 	public native void FastColor(long matAddrInput, long matAddrResult);
 
 }

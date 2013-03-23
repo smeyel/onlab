@@ -8,14 +8,14 @@
 #include "TwoColorLocator.h"
 #include "MarkerCC2Locator.h"
 
-#include "TimeMeasurement.h"
+//#include "TimeMeasurement.h"
 
 #include "DetectionResultExporterBase.h"
 
-#include "ConfigManagerBase.h"
+//#include "ConfigManagerBase.h"
 
 using namespace cv;
-using namespace MiscTimeAndConfig;
+//using namespace MiscTimeAndConfig;
 
 namespace TwoColorCircleMarker
 {
@@ -33,16 +33,16 @@ namespace TwoColorCircleMarker
 	*/
 	class MarkerCC2Tracker
 	{
-		// Internal configuration class
-		class ConfigManager : public MiscTimeAndConfig::ConfigManagerBase
-		{
-			// This method is called by init of the base class to read the configuration values.
-			virtual bool readConfiguration(CSimpleIniA *ini);
-		public:
-			// Show verbose frames
-			bool visualizeColorCodedFrame;
-		};
-		ConfigManager configManager;
+//		// Internal configuration class
+//		class ConfigManager : public MiscTimeAndConfig::ConfigManagerBase
+//		{
+//			// This method is called by init of the base class to read the configuration values.
+//			virtual bool readConfiguration(CSimpleIniA *ini);
+//		public:
+//			// Show verbose frames
+//			bool visualizeColorCodedFrame;
+//		};
+//		ConfigManager configManager;
 
 	private:
 		/**
@@ -74,7 +74,7 @@ namespace TwoColorCircleMarker
 			  set by TimeMeasurementCodeDefs::setnames().
 			May be used to query the average elapsed times after execution.
 		*/
-		TimeMeasurement *timeMeasurement;
+//		TimeMeasurement *timeMeasurement;
 
 		/** Pointer to the image used to store the recognized code colors for every pixel
 			  of the input image. The init() method may be asked to use the default image,
@@ -122,7 +122,7 @@ namespace TwoColorCircleMarker
 
 		/** Destructor
 		*/
-		MarkerCC2Tracker::~MarkerCC2Tracker();
+		~MarkerCC2Tracker();
 		
 		/** Wrapper method to set the DetectionResultExporterBase property of the MarkerCC2Locator.
 			Use it to define the data export target.

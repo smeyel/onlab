@@ -6,6 +6,8 @@
 
 #include <android/log.h>
 #include "libTwoColorCircleMarker/include/FastColorFilter.h"
+#include "libTwoColorCircleMarker/include/MarkerCC2Tracker.h"
+#include "libTwoColorCircleMarker/include/DetectionResultExporterBase.h"
 
 #define LOG_TAG "SMEyeL"
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
@@ -29,6 +31,34 @@ string intToString(int i) {
 const char* intToCharStar(int i) {
 	return stringToCharStar(intToString(i));
 }
+
+class ResultExporter : public TwoColorCircleMarker::DetectionResultExporterBase
+{
+//	ofstream stream;
+public:
+	void open(char *filename)
+	{
+//		stream.open(filename);
+	}
+
+	void close()
+	{
+//		stream.flush();
+//		stream.close();
+	}
+
+	int currentFrameIdx;
+	int currentCamID;
+
+	virtual void writeResult(MarkerBase *marker)
+	{
+//		stream << "FID:" << currentFrameIdx << ",CID:" << currentCamID << " ";
+//		marker->exportToTextStream(&stream);
+		LOGD("aaaaaamarkerfound");
+		std::cout << "eeeeeeeee";
+//		stream << endl;
+	}
+};
 
 
 class MarkerHandler {
@@ -155,13 +185,20 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindCircles(JNIEnv*, job
 
 }
 
-MarkerHandler markerHandler;
+//MarkerHandler markerHandler;
+TwoColorCircleMarker::MarkerCC2Tracker tracker;
+ResultExporter resultExporter;
 
-JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject);
 
-JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject)
+
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject, jint width, jint height);
+
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject, jint width, jint height)
 {
-	markerHandler.init(800, 480);
+	//markerHandler.init(width, height);
+	tracker.setResultExporter(&resultExporter);
+	tracker.init("",true,width,height);
+
 
 }
 
@@ -175,9 +212,11 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FastColor(JNIEnv*, jobje
 	Mat mInputBgr;
 	cvtColor(mInput, mInputBgr, COLOR_RGBA2BGR);
 
-	markerHandler.processFrame(mInputBgr);
+//	markerHandler.processFrame(mInputBgr);
+	tracker.processFrame(mInputBgr,0,-1.0f);
 
-	Mat* mOut = markerHandler.visColorCodeFrame;
+//	Mat* mOut = markerHandler.visColorCodeFrame;
+	Mat* mOut = tracker.visColorCodeFrame;
 	cvtColor(*mOut, mResult, COLOR_BGR2RGBA);
 
 }
