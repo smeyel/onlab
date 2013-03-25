@@ -7,5 +7,8 @@
     <string name="ivPhoto">ivPhoto</string>
 	<!--  <string name="btnCapture">Capture</string>  -->
 	<string name="btnReg">Registration</string>
-	<string name="TextView01">Nothing from client yet</string>
+	<string name="TextView_receivedme">Nothing from client yet</string>
+	<string name="TextView_message">Message from the client:</string>
+	<string name="TextView_time">Photo taken:</string>
+	<string name="TextView_timegot">No Photo taken yet</string>
 </resources>
