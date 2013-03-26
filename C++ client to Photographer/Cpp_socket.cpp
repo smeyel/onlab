@@ -15,7 +15,6 @@ using namespace std;
 #include <io.h>
 
 
-#define PORT 6000
 #define RCVBUFSIZE 8192
 
 static void error_exit(char *errorMessage) {
@@ -24,29 +23,151 @@ static void error_exit(char *errorMessage) {
     exit(EXIT_FAILURE);
 }
 
-void SendPingRequest(int conn)
+
+
+
+// ----------------------------------------------------------------------------
+
+class PhoneProxy
 {
-    char *echo_string;
-    int echo_len;
-	echo_string = "{ \"type\": \"ping\" }";
-    echo_len = strlen(echo_string);
+private:
+	SOCKET sock;
 
-    if (send(conn, echo_string, echo_len, 0) != echo_len)
-        error_exit("send() has sent a different number of bytes than expected !!!!");
-}
+public:
+	void Connect(char *ip, int port);
+	void Disconnect();
 
-void SendTakePhotoRequest(int conn, int DesiredTimeStamp)
+	void RequestPhoto(int desiredTimeStamp);
+	void RequestPing();
+	void Receive(char *filename);	// For PONG, filename has no effect.
+	void ReceiveDebug();
+
+private:
+	void ProcessIncomingJSON(int sock,char *buffer, char *filename);
+};
+
+void PhoneProxy::RequestPhoto(int desiredTimeStamp)
 {
     char buffer[100];
     int len;
-	sprintf(buffer,"{ \"type\": \"takepicture\", \"desiredtimestamp\": \"%d\" }",DesiredTimeStamp);
+	sprintf(buffer,"{ \"type\": \"takepicture\", \"desiredtimestamp\": \"%d\" }",desiredTimeStamp);
     len = strlen(buffer);
 
-    if (send(conn, buffer, len, 0) != len)
+    if (send(sock, buffer, len, 0) != len)
         error_exit("send() has sent a different number of bytes than expected !!!!");
+	int iResult = shutdown(sock, SD_SEND);
+	if (iResult == SOCKET_ERROR) {
+        printf("shutdown failed with error: %d\n", WSAGetLastError());
+		Disconnect();
+        return;
+    }
 }
 
-void ProcessIncomingJSON(int sock,char *buffer)
+void PhoneProxy::RequestPing()
+{
+	char *cmd = "{ \"type\": \"ping\", \"desiredtimestamp\": \"0\"  }";
+    int len;
+    len = strlen(cmd);
+
+    if (send(sock, cmd, len, 0) != len)
+        error_exit("send() has sent a different number of bytes than expected !!!!");
+	int iResult = shutdown(sock, SD_SEND);
+	if (iResult == SOCKET_ERROR) {
+        printf("shutdown failed with error: %d\n", WSAGetLastError());
+		Disconnect();
+        return;
+    }
+}
+
+void PhoneProxy::Receive(char *filename)
+{
+	// Receive response
+	int totalBytes = 0;
+	char buffer[RCVBUFSIZE] = "";
+	int received = 0;
+
+	// Read JSON part (1 byte at once)
+	char c;
+	char *bufPtr = buffer;
+	*bufPtr = 0;
+	//while ((received = recv(sock, buffer, RCVBUFSIZE, 0)) > 0);
+	while ((received = recv(sock, &c, 1, 0)) > 0) 
+	{
+		if (c != '#')	// Not at end of JSON
+		{
+			*bufPtr = c;
+			bufPtr++;
+			*bufPtr = 0;
+		}
+		else
+		{
+			if (bufPtr-buffer>2)	// Do not stop for UTF-8 initial 2 bytes
+				break;
+		}
+	}
+	ProcessIncomingJSON(sock,buffer+1,filename);
+}
+
+void PhoneProxy::ReceiveDebug()
+{
+	// Receive response
+	char buffer[RCVBUFSIZE] = "";
+	int received = recv(sock, buffer, RCVBUFSIZE, 0);
+	cout << "DEBUG RECEIVE:" << endl << buffer << endl << "END RECEIVE" << endl;
+	return;
+}
+
+
+
+void PhoneProxy::Connect(char *ip, int port)
+{
+	struct sockaddr_in server;
+    struct hostent *host_info;
+    unsigned long addr;
+	int iResult;
+
+	cout << "Connecting..." << endl;
+
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    wVersionRequested = MAKEWORD (1, 1);
+    if (WSAStartup (wVersionRequested, &wsaData) != 0)
+        error_exit( "Initialisation of Winsock failed");
+    else
+        printf("Winsock Initialised\n");
+
+    sock = socket( AF_INET, SOCK_STREAM, 0 );
+
+    if (sock < 0)
+        error_exit( "Socket error");
+
+    memset( &server, 0, sizeof (server));
+    if ((addr = inet_addr( ip)) != INADDR_NONE) {
+        memcpy( (char *)&server.sin_addr, &addr, sizeof(addr));
+    }
+    else {
+        host_info = gethostbyname(ip);
+        if (NULL == host_info)
+            error_exit("Unknown Server");
+        memcpy( (char *)&server.sin_addr,
+                host_info->h_addr, host_info->h_length );
+    }
+
+    server.sin_family = AF_INET;
+    server.sin_port = htons( port );
+
+    if(connect(sock,(struct sockaddr*)&server,sizeof(server)) <0)
+        error_exit("Connection to the server failed");
+}
+
+void PhoneProxy::Disconnect()
+{
+	closesocket(sock);
+	WSACleanup();
+	sock = -1;
+}
+
+void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 {
 	cout << "JSON received:" << endl << buffer << endl << "End of JSON" << endl;
 
@@ -86,7 +207,7 @@ void ProcessIncomingJSON(int sock,char *buffer)
 		ofstream outFile;
 		if (outFile != NULL) 
 		{
-			outFile.open("D:\\test.jpg" , ofstream::binary);
+			outFile.open(filename , ofstream::binary);
 			cout << "File opened!" << endl;
 		} else 
 		{
@@ -114,171 +235,31 @@ void ProcessIncomingJSON(int sock,char *buffer)
 	}
 }
 
-// ----------------------------------------------------------------------------
-/*
-class PhoneProxy
-{
-public:
-
-	void RequestPhoto(int desiredTimeStamp, char* filename);
-	void RequestPing();
-
-private:
-	SOCKET sock;
-	void Connect(char *ip, int port);
-	void Disconnect();
-}
-
-void PhoneProxy::RequestPhoto(int desiredTimeStamp, char* filename)
-{
-}
-
-void PhoneProxy::RequestPing()
-{
-}
-
-void PhoneProxy::Connect(char *ip, int port)
-{
-	struct sockaddr_in server;
-    struct hostent *host_info;
-    unsigned long addr;
-	char *ip_buff = "127.0.0.1"; //ip beállítása
-	int iResult;
-
-	char tmpBuff[100];
-	cout << "Press enter to start connecting..." << endl;
-	cin >> tmpBuff;
-
-	cout << "Connecting..." << endl;
-
-    WORD wVersionRequested;
-    WSADATA wsaData;
-    wVersionRequested = MAKEWORD (1, 1);
-    if (WSAStartup (wVersionRequested, &wsaData) != 0)
-        error_exit( "Initialisation of Winsock failed");
-    else
-        printf("Winsock Initialised\n");
-
-    sock = socket( AF_INET, SOCK_STREAM, 0 );
-
-    if (sock < 0)
-        error_exit( "Socket error");
-
-    memset( &server, 0, sizeof (server));
-    if ((addr = inet_addr( ip_buff)) != INADDR_NONE) {
-        memcpy( (char *)&server.sin_addr, &addr, sizeof(addr));
-    }
-    else {
-        host_info = gethostbyname(ip_buff);
-        if (NULL == host_info)
-            error_exit("Unknown Server");
-        memcpy( (char *)&server.sin_addr,
-                host_info->h_addr, host_info->h_length );
-    }
-
-    server.sin_family = AF_INET;
-    server.sin_port = htons( PORT );
-
-    if(connect(sock,(struct sockaddr*)&server,sizeof(server)) <0)
-        error_exit("Connection to the server failed");
-}
-
-void PhoneProxy::Disconnect()
-{
-}
-
-
-*/
 
 int main( int argc, char *argv[])
 {
-    struct sockaddr_in server;
-    struct hostent *host_info;
-    unsigned long addr;
-	char *ip_buff = "127.0.0.1"; //ip beállítása
-	int iResult;
-    SOCKET sock;
+	char *ip = "152.66.169.37";
+	int port = 6000;
+	PhoneProxy proxy;
 
 	char tmpBuff[100];
-	cout << "Press enter to start connecting..." << endl;
+/*	cout << "Press enter to start connecting..." << endl;
+	cin >> tmpBuff;*/
+
+/*	proxy.Connect(ip,port);
+	proxy.RequestPing();
+	proxy.Receive("d:\\temp\\nothing.txt");
+	proxy.Disconnect();*/
+
+	proxy.Connect(ip,port);
+	proxy.RequestPhoto(1);
+	proxy.Receive("d:\\temp\\image.jpg");
+	//proxy.ReceiveDebug();
+	proxy.Disconnect();
+
+	cout << "Press enter to finish..." << endl;
 	cin >> tmpBuff;
 
-	cout << "Connecting..." << endl;
 
-    WORD wVersionRequested;
-    WSADATA wsaData;
-    wVersionRequested = MAKEWORD (1, 1);
-    if (WSAStartup (wVersionRequested, &wsaData) != 0)
-        error_exit( "Initialisation of Winsock failed");
-    else
-        printf("Winsock Initialised\n");
-
-    sock = socket( AF_INET, SOCK_STREAM, 0 );
-
-    if (sock < 0)
-        error_exit( "Socket error");
-
-    memset( &server, 0, sizeof (server));
-    if ((addr = inet_addr( ip_buff)) != INADDR_NONE) {
-        memcpy( (char *)&server.sin_addr, &addr, sizeof(addr));
-    }
-    else {
-        host_info = gethostbyname(ip_buff);
-        if (NULL == host_info)
-            error_exit("Unknown Server");
-        memcpy( (char *)&server.sin_addr,
-                host_info->h_addr, host_info->h_length );
-    }
-
-    server.sin_family = AF_INET;
-    server.sin_port = htons( PORT );
-
-    if(connect(sock,(struct sockaddr*)&server,sizeof(server)) <0)
-        error_exit("Connection to the server failed");
-
-	SendPingRequest(sock);
-	//SendTakePhotoRequest(sock, 123456);
-
-	iResult = shutdown(sock, SD_SEND);
-
-	if (iResult == SOCKET_ERROR) {
-        printf("shutdown failed with error: %d\n", WSAGetLastError());
-        closesocket(sock);
-        WSACleanup();
-        return 1;
-    }
-
-	// Receive response
-	int totalBytes = 0;
-	char buffer[RCVBUFSIZE] = "";
-	int received = 0;
-
-	// Read JSON part (1 byte at once)
-	char c;
-	char *bufPtr = buffer;
-	*bufPtr = 0;
-	bool processed = false;
-	while ((received = recv(sock, &c, 1, 0)) > 0) 
-	{
-		if (c != '\0')	// Not at end of JSON
-		{
-			*bufPtr = c;
-			bufPtr++;
-			*bufPtr = 0;
-		}
-		else
-		{
-			// End of JSON
-			ProcessIncomingJSON(sock,buffer);
-			processed = true;
-		}
-	}
-	if (!processed)
-	{
-		ProcessIncomingJSON(sock,buffer);
-	}
-
-	closesocket(sock);
-	WSACleanup();
 	return EXIT_SUCCESS;
 }
