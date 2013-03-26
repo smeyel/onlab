@@ -7,3 +7,9 @@ libs/
 proguard.cfg
 *.png
 *.txt
+C++ client to Photographer/Debug/*.*
+C++ client to Photographer/DummySmartphone/Debug/*.*
+*.sdf
+*.opensdf
+*.suo
+*.ipch
