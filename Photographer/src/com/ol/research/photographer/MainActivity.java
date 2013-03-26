@@ -39,10 +39,15 @@ public class MainActivity extends Activity {
 	 static ServerSocket ss = null;
 	 static String mClientMsg = "";
 	 Thread myCommsThread = null;
-	 String current_time = null;
+	 static String current_time = null;
 	 protected static final int MSG_ID = 0x1337;
 	 public static final int SERVERPORT = 6000;
 	 protected static final int TIME_ID = 0x1338;
+	 
+	 Calendar rightNow;
+	 long offset;
+     long sinceMidnight;
+	 
 	 
 	 private PictureCallback mPicture = new PictureCallback() {
 
@@ -62,7 +67,7 @@ public class MainActivity extends Activity {
 	            Log.v("Photographer", "Picture saved at path: " + pictureFile);
 	            
 	            Intent intent = new Intent(MainActivity.this, SendImageService.class);
-				//intent.putExtra(pictureFile, false);
+				//intent.putExtra(current_time, false); //lehet, hogy szinkronizáció szükséges!
 				startService(intent);            	            
 	        }
 	    };
@@ -72,10 +77,9 @@ public class MainActivity extends Activity {
 	    	@Override
 	    	public void onShutter()
 	    	{
-	    		Calendar rightNow = Calendar.getInstance();
-	               
-	            long offset = rightNow.get(Calendar.ZONE_OFFSET) + rightNow.get(Calendar.DST_OFFSET);
-	            long sinceMidnight = (rightNow.getTimeInMillis() + offset) % (24 * 60 * 60 * 1000);
+	    		rightNow = Calendar.getInstance();               
+	            offset = rightNow.get(Calendar.ZONE_OFFSET) + rightNow.get(Calendar.DST_OFFSET);
+	            sinceMidnight = (rightNow.getTimeInMillis() + offset) % (24 * 60 * 60 * 1000);
 	            current_time = String.valueOf(sinceMidnight); 
 	    		
 	    		
@@ -162,13 +166,16 @@ public class MainActivity extends Activity {
  	    public void handleMessage(Message msg) {
  	        switch (msg.what) {
  	        case MSG_ID:
- 	            TextView tv = (TextView) findViewById(R.id.TextView_time);
+ 	            TextView tv = (TextView) findViewById(R.id.TextView_receivedme);
  	            tv.setText(mClientMsg);
  	            break;
  	       case TIME_ID:
-	        	TextView tv2 = (TextView) findViewById(R.id.TextView_receivedme);
+	        	TextView tv2 = (TextView) findViewById(R.id.TextView_timegot);
 	        	tv2.setText(current_time);
 	        	break;
+ 	       /*case 0x1339:
+ 	    	    TextView tv3 = (TextView) findViewById(R.id.TextView_current_time);
+	        	tv3.setText(msg.arg1);*/
  	        default:
  	        	
  	            break;

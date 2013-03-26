@@ -7,12 +7,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Calendar;
 
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 class CommsThread implements Runnable {
 	Handler handler;
@@ -77,9 +84,49 @@ class CommsThread implements Runnable {
                
                	String message = new String(bos.toByteArray());
                	
+               	try {
+               		JSONObject jObj = new JSONObject(message);
+               		//JSONArray types = jObj.getJSONArray("type");
+               		String type = jObj.getString("type");
+               		int desired_timestamp = jObj.getInt("desiredtimestamp");
+               		
+    	    		Calendar rightNow = Calendar.getInstance();               
+    	            long offset = rightNow.get(Calendar.ZONE_OFFSET) + rightNow.get(Calendar.DST_OFFSET);
+    	            long sinceMidnight = (rightNow.getTimeInMillis() + offset) % (24 * 60 * 60 * 1000);
+    	            String current_time = String.valueOf(sinceMidnight);
+    	            int actual_time = Integer.parseInt(current_time.toString());
+    	           /* long time_to_wait;
+    	            
+    	            if(desired_timestamp != 0)
+    	            {
+    	            	time_to_wait = Integer.parseInt(current_time.toString()) - desired_timestamp;
+    	            }
+    	            else
+    	            {
+    	            	time_to_wait = 0;
+    	            }*/
                	
-               	if (message.equals("p") )
+               	
+               	
+               	if (type.equals("takepicture"))
                	{
+               		//Thread.sleep(time_to_wait);
+               		if(desired_timestamp != 0 && desired_timestamp > actual_time)
+               		{
+               			while(desired_timestamp >= actual_time)
+               			{
+               				rightNow = Calendar.getInstance(); 
+               				offset = rightNow.get(Calendar.ZONE_OFFSET) + rightNow.get(Calendar.DST_OFFSET);
+            	            sinceMidnight = (rightNow.getTimeInMillis() + offset) % (24 * 60 * 60 * 1000);
+            	            current_time = String.valueOf(sinceMidnight);
+            	            actual_time = Integer.parseInt(current_time.toString());
+            	            
+            	            /*Message mes = new Message();
+            	            mes.what = 0x1339;
+            	            mes.arg1 = actual_time;
+            	            handler.sendMessage(mes);*/
+               			}
+               		}
                		mCamera.takePicture(shutter, null, mPicture);
                		//socket_os = s.getOutputStream();
                		//Thread.sleep(2000L);
@@ -105,9 +152,7 @@ class CommsThread implements Runnable {
                     os.flush();*/
                	    
                		
-               	}
-               	
-               	if(message.equals("ping"))
+               	} else if(message.equals("ping"))
                	{
                		out = s.getOutputStream();       
                     DataOutputStream output = new DataOutputStream(out);     
@@ -116,6 +161,12 @@ class CommsThread implements Runnable {
                	}
                	MainActivity.mClientMsg = message;
                	handler.sendMessage(m);
+               	
+            
+               	} catch (JSONException e) {
+                    Log.e("JSON Parser", "Error parsing data " + e.toString());
+                }   	
+               	
             } catch (IOException e) {
                 e.printStackTrace();
                 
