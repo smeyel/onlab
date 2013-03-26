@@ -28,14 +28,15 @@ int main( int argc, char *argv[]) {
     struct sockaddr_in server;
     struct hostent *host_info;
     unsigned long addr;
-	int answer;
-	int image_lenght;
-    char *recvbuf;
-	char *ip_buff = "192.168.74.103";
+	char *ip_buff = "192.168.74.103"; //ip beállítása
 	int iResult;
     SOCKET sock;
     char *echo_string;
     int echo_len;
+
+	echo_string = "p"; // p-betû -->képkészítés; ping --> pingelés
+    echo_len = strlen(echo_string);
+
 
     WORD wVersionRequested;
     WSADATA wsaData;
@@ -70,9 +71,6 @@ int main( int argc, char *argv[]) {
     if(connect(sock,(struct sockaddr*)&server,sizeof(server)) <0)
         error_exit("Connection to the server failed");
 
-    echo_string = "p";
-    echo_len = strlen(echo_string);
-
     if (send(sock, echo_string, echo_len, 0) != echo_len)
         error_exit("send() has sent a different number of bytes than expected !!!!");
 
@@ -91,32 +89,48 @@ int main( int argc, char *argv[]) {
 	ofstream outFile;
 	char buf[1024] = "";
 	int received = 0;
-	if (outFile != NULL) 
+	char pong_buff[5];
+
+	if(echo_string == "p")
 	{
-		outFile.open("D:\\test.jpg" , ofstream::binary);
-		cout << "File opened!" << endl;
-	} else 
-	{
-		cout << "Can't open file!" << endl;
+		if (outFile != NULL) 
+		{
+			outFile.open("D:\\test.jpg" , ofstream::binary);
+			cout << "File opened!" << endl;
+		} else 
+		{
+			cout << "Can't open file!" << endl;
+		}
+
+		while ((received = recv(sock, buf, sizeof(buf), 0)) > 0) 
+		{
+			cout << "R:" << received << " ";
+			if (received > 0) 
+			{
+				totalBytes += received;
+				if (outFile.is_open()) 
+				{
+					outFile.write(buf, received); 
+					cout << " (Total: " << totalBytes << " B)" << endl;
+				} else
+				cout << "Error in recv() function, received bytes = " << received << endl;
+			} else 
+				cout << "R:" << received << " ";
+		}	
+		outFile.close();
 	}
 
-	while ((received = recv(sock, buf, sizeof(buf), 0)) > 0) 
-	{
-		cout << "R:" << received << " ";
-		if (received > 0) 
+	if(echo_string == "ping")
 		{
-			totalBytes += received;
-			if (outFile.is_open()) 
+			recv(sock, buf, sizeof(buf),0);
+			for(int i=2; i<6; i++)
 			{
-				outFile.write(buf, received); 
-				cout << " (Total: " << totalBytes << " B)" << endl;
-			} else
-			cout << "Error in recv() function, received bytes = " << received << endl;
-		} else 
-			cout << "R:" << received << " ";
-	}
-	outFile.close();
-    closesocket(sock);
-    WSACleanup();
-    return EXIT_SUCCESS;
+				pong_buff[i-2]=buf[i];
+			}
+			pong_buff[4]='\0';
+			cout<<pong_buff<< endl;
+		}
+		closesocket(sock);
+		WSACleanup();
+		return EXIT_SUCCESS;
 }
