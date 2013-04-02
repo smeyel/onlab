@@ -24,20 +24,15 @@ public class SendImageService extends IntentService{
 	protected synchronized void onHandleIntent(Intent intent) 
 	{
 		try {
-		OutputStream os = CommsThread.s.getOutputStream();
-		//String shot_time = intent.getStringExtra(MainActivity.current_time);
-		String path = Environment.getExternalStorageDirectory().getPath()+"/custom_photos"+"/__1.jpg";
-   		File myFile = new File (path);
-        byte [] mybytearray  = new byte [(int)myFile.length()];
-        FileInputStream fis = new FileInputStream(myFile);
-        BufferedInputStream bis = new BufferedInputStream(fis);
-        bis.read(mybytearray,0,mybytearray.length);
-        
+		
+		OutputStream os = CommsThread.s.getOutputStream();		
+		byte [] mybytearray = intent.getByteArrayExtra("BYTE_ARRAY");
+		long timestamp = intent.getLongExtra("TIMESTAMP", 0);
         String buff = Integer.toString(mybytearray.length);
         String JSON_message = new String("{\"type\":\"JPEG\",\"size\":\"");
         JSON_message = JSON_message.concat(buff);
         JSON_message = JSON_message.concat("\",\"timestamp\":\"");
-        JSON_message = JSON_message.concat("1");
+        JSON_message = JSON_message.concat(Long.toString(timestamp));
         JSON_message = JSON_message.concat("\"}#");
         
         System.out.println("Sending...");    
@@ -47,19 +42,17 @@ public class SendImageService extends IntentService{
         
         os.write(mybytearray,0,mybytearray.length);
         
-        try {
+        /*try {
 			os.close();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-        
-        
-        
+		}*/
+              
         os.flush();
         //CommsThread.socket_flag = false;
         synchronized (CommsThread.s)
    		{
-        	CommsThread.s.notifyAll();;
+        	CommsThread.s.notifyAll();
    		}
         
         

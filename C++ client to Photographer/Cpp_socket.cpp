@@ -54,7 +54,7 @@ void PhoneProxy::RequestPhoto(int desiredTimeStamp)
     len = strlen(buffer);
 
     if (send(sock, buffer, len, 0) != len)
-        error_exit("send() has sent a different number of bytes than expected !!!!");
+        error_exit("send() has sent a different number of bytes than excepted !!!!");
 	int iResult = shutdown(sock, SD_SEND);
 	if (iResult == SOCKET_ERROR) {
         printf("shutdown failed with error: %d\n", WSAGetLastError());
@@ -183,7 +183,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 	else if (posJPEG)
 	{
 		char tmpS[100];
-		char *posTimeStampValue = posTimeStamp + 13;
+		char *posTimeStampValue = posTimeStamp + 12;
 		char *posTimeStampValueEnd = strstr(posTimeStampValue,"\"");
 		int len = posTimeStampValueEnd-posTimeStampValue;
 		strncpy(tmpS, posTimeStampValue, len );
@@ -191,7 +191,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 		int timestamp = atoi(tmpS);
 
 		char *posSize = strstr(buffer,"size");
-		char *posSizeValue = posSize + 8;
+		char *posSizeValue = posSize + 7;
 		char *posSizeValueEnd = strstr(posSizeValue,"\"");
 		len = posSizeValueEnd-posSizeValue;
 		strncpy(tmpS, posSizeValue, len );
@@ -214,8 +214,10 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 			cout << "Can't open file!" << endl;
 		}
 
-		while ((received = recv(sock, receiveBuffer, RCVBUFSIZE, 0)) > 0) 
+		//while ((received = recv(sock, receiveBuffer, RCVBUFSIZE, 0)) > 0)
+		while (jpegBytes != jpegSize)
 		{
+			received = recv(sock, receiveBuffer, RCVBUFSIZE, 0);
 			jpegBytes += received;
 			if (outFile.is_open()) 
 			{
@@ -238,7 +240,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 
 int main( int argc, char *argv[])
 {
-	char *ip = "152.66.169.37";
+	char *ip = "192.168.245.101";
 	int port = 6000;
 	PhoneProxy proxy;
 
@@ -252,11 +254,15 @@ int main( int argc, char *argv[])
 	proxy.Disconnect();*/
 
 	proxy.Connect(ip,port);
-	proxy.RequestPhoto(1);
-	proxy.Receive("d:\\temp\\image.jpg");
+	proxy.RequestPhoto(0);
+	proxy.Receive("d:\\temp\\image1.jpg");
 	//proxy.ReceiveDebug();
-	proxy.Disconnect();
+	//proxy.Disconnect();
+	proxy.Connect(ip,port);
+	proxy.RequestPhoto(0);
+	proxy.Receive("d:\\temp\\image2.jpg");
 
+	proxy.Disconnect();
 	cout << "Press enter to finish..." << endl;
 	cin >> tmpBuff;
 

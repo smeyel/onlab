@@ -39,21 +39,23 @@ public class MainActivity extends Activity {
 	 static ServerSocket ss = null;
 	 static String mClientMsg = "";
 	 Thread myCommsThread = null;
-	 static String current_time = null;
+	 String current_time = null;
 	 protected static final int MSG_ID = 0x1337;
 	 public static final int SERVERPORT = 6000;
 	 protected static final int TIME_ID = 0x1338;
 	 
-	 Calendar rightNow;
-	 long offset;
-     long sinceMidnight;
-	 
-	 
+	// static Calendar last_midnight;
+	 static long calendar_offset;
+	 static Calendar right_now;
+	 static long millis_since_midnight;
+	  
 	 private PictureCallback mPicture = new PictureCallback() {
 
 	        @Override
 	        public void onPictureTaken(byte[] data, Camera camera) {
-	        	String pictureFile = Environment.getExternalStorageDirectory().getPath()+"/custom_photos"+"/__1.jpg";
+	        	
+	        	//SD kártyára lementés
+	        	/*String pictureFile = Environment.getExternalStorageDirectory().getPath()+"/custom_photos"+"/__1.jpg";
 	            try {
 	                FileOutputStream fos = new FileOutputStream(pictureFile);
 	                fos.write(data);
@@ -64,10 +66,20 @@ public class MainActivity extends Activity {
 	            } catch (IOException e) {
 	                Log.d("Photographer", "Error accessing file: " + e.getMessage());
 	            }
-	            Log.v("Photographer", "Picture saved at path: " + pictureFile);
+	            Log.v("Photographer", "Picture saved at path: " + pictureFile);*/
 	            
 	            Intent intent = new Intent(MainActivity.this, SendImageService.class);
-				//intent.putExtra(current_time, false); //lehet, hogy szinkronizáció szükséges!
+				intent.putExtra("BYTE_ARRAY", data);
+				/*synchronized(this)
+				{
+					try {
+						wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}*/
+				intent.putExtra("TIMESTAMP", millis_since_midnight);
 				startService(intent);            	            
 	        }
 	    };
@@ -77,15 +89,18 @@ public class MainActivity extends Activity {
 	    	@Override
 	    	public void onShutter()
 	    	{
-	    		rightNow = Calendar.getInstance();               
-	            offset = rightNow.get(Calendar.ZONE_OFFSET) + rightNow.get(Calendar.DST_OFFSET);
-	            sinceMidnight = (rightNow.getTimeInMillis() + offset) % (24 * 60 * 60 * 1000);
-	            current_time = String.valueOf(sinceMidnight); 
+	    		right_now = Calendar.getInstance();
+	    		millis_since_midnight = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
+	            current_time = String.valueOf(millis_since_midnight); 
 	    		
-	    		
+	           /* synchronized(this)
+				{
+					notify();
+				}*/
 	    		
 	    		Message m = new Message();
 	            m.what = TIME_ID;
+	            //m.obj = millis_since_midnight;
 	            myUpdateHandler.sendMessage(m);
 	    	}
 	    };
@@ -96,7 +111,34 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-	
+		
+		
+		//String timebuff = rightNow.getInstance();
+		
+		// EZ ROSSZ!!!!!!!!
+		/*last_midnight = Calendar.getInstance();
+		//rightNow.set(0, 0, 0);
+		int year = last_midnight.get(Calendar.YEAR);
+		int month = last_midnight.get(Calendar.MONTH);
+		int day = last_midnight.get(Calendar.DAY_OF_MONTH);
+		last_midnight.set(year,month,day,0,0); //ms 1970 óta
+		
+		long[] midnight_array = new long[20];*/
+		
+		/*for(int i=0; i<20; i++)
+		{
+			last_midnight = Calendar.getInstance();
+			//rightNow.set(0, 0, 0);
+			year = last_midnight.get(Calendar.YEAR);
+			month = last_midnight.get(Calendar.MONTH);
+			day = last_midnight.get(Calendar.DAY_OF_MONTH);
+			last_midnight.set(year,month,day,0,0); //ms 1970 óta
+			midnight_array[i]= last_midnight.getTimeInMillis();
+		}*/
+		
+		right_now = Calendar.getInstance();
+		calendar_offset = right_now.get(Calendar.ZONE_OFFSET) + right_now.get(Calendar.DST_OFFSET);
+		
 		final Button btnHttpGet = (Button) findViewById(R.id.btnHttpGet);
 		btnHttpGet.setOnClickListener(new OnClickListener(){
 			@Override

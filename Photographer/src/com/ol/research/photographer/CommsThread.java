@@ -25,11 +25,13 @@ class CommsThread implements Runnable {
 	Handler handler;
 	Camera mCamera;
 	PictureCallback mPicture;
-	//ServerSocket ss = null;
 	static OutputStream socket_os;
-	//static boolean socket_flag = true;
 	static Socket s = null;
 	ShutterCallback shutter;
+	
+	Calendar right_now;
+//	Calendar last_midnight = MainActivity.last_midnight;
+	long calendar_offset = MainActivity.calendar_offset;
 	
 	public CommsThread(Handler hand, Camera mCamera, PictureCallback mPicture, ShutterCallback shutter)
 	{
@@ -37,120 +39,88 @@ class CommsThread implements Runnable {
 		this.mCamera = mCamera;
 		this.mPicture = mPicture;
 		this.shutter = shutter;
-		//this.ss = ss;
 	}
 	
 	public void run() {
         
-        //ServerSocket ss = null;
-    	//s=null;
+		//offset measurement
+		right_now = Calendar.getInstance();
+		//long actual_time = right_now.getTimeInMillis() - last_midnight.getTimeInMillis();
+		long actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
+		mCamera.takePicture(shutter, null, null);
+		/*long[] timearray = new long[10];
+		for(int i=0; i<5; i++)
+		{
+			mCamera.takePicture(shutter, null, null);
+			try {
+				Thread.sleep(1000L);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			timearray[i]=MainActivity.millis_since_midnight;
+		}*/
+		try {
+			Thread.sleep(1000L);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		long time_offset = MainActivity.millis_since_midnight - actual_time;
+		
         try {
         		MainActivity.ss = new ServerSocket(MainActivity.SERVERPORT);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
         while (!Thread.currentThread().isInterrupted()) {
         	s = null;
         	Message m = new Message();
             InputStream is = null;
             OutputStream out = null;
             m.what = MainActivity.MSG_ID;
-            try {
-                //if (s == null)
-            	 	
-                    s = MainActivity.ss.accept();
-               // BufferedReader input = new BufferedReader(new InputStreamReader(s.getInputStream()));
-              //  String st = null;
-              //  st = input.readLine();
-                    
+            try {          	 	
+                    s = MainActivity.ss.accept();                   
                     is = s.getInputStream();
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     int ch;
                     while ((ch=is.read())!=-1) {
                     	bos.write(ch);
                     }
-                    
-                    
-                //ide jön a válasz
-             //  try {
-			//	Thread.sleep(3000L);
-		//	} catch (InterruptedException e) {
-		//		e.printStackTrace();
-		//} 
-           //    out = s.getOutputStream();       
-          //     DataOutputStream output = new DataOutputStream(out);     
-             //  output.writeChars("Hello PC!");
-            //   output.flush();
-               
+                   
                	String message = new String(bos.toByteArray());
                	
                	try {
                		JSONObject jObj = new JSONObject(message);
-               		//JSONArray types = jObj.getJSONArray("type");
                		String type = jObj.getString("type");
                		int desired_timestamp = jObj.getInt("desiredtimestamp");
                		
-    	    		Calendar rightNow = Calendar.getInstance();               
-    	            long offset = rightNow.get(Calendar.ZONE_OFFSET) + rightNow.get(Calendar.DST_OFFSET);
-    	            long sinceMidnight = (rightNow.getTimeInMillis() + offset) % (24 * 60 * 60 * 1000);
-    	            String current_time = String.valueOf(sinceMidnight);
-    	            int actual_time = Integer.parseInt(current_time.toString());
-    	           /* long time_to_wait;
-    	            
-    	            if(desired_timestamp != 0)
-    	            {
-    	            	time_to_wait = Integer.parseInt(current_time.toString()) - desired_timestamp;
-    	            }
-    	            else
-    	            {
-    	            	time_to_wait = 0;
-    	            }*/
-               	
-               	
-               	
+    	    		right_now = Calendar.getInstance();
+    	    		actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
+    	            //long time_to_wait = desired_timestamp - (actual_time + time_offset);
+    	    		
+    	    		
                	if (type.equals("takepicture"))
                	{
-               		//Thread.sleep(time_to_wait);
+               		/*if(time_to_wait>0)
+               		{
+               		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
+               		}*/
                		if(desired_timestamp != 0 && desired_timestamp > actual_time)
                		{
-               			while(desired_timestamp >= actual_time)
+               			while(desired_timestamp >= (actual_time+time_offset)) //esetleges megoldás: offset kezelése -> (actual_time+300)
                			{
-               				rightNow = Calendar.getInstance(); 
-               				offset = rightNow.get(Calendar.ZONE_OFFSET) + rightNow.get(Calendar.DST_OFFSET);
-            	            sinceMidnight = (rightNow.getTimeInMillis() + offset) % (24 * 60 * 60 * 1000);
-            	            current_time = String.valueOf(sinceMidnight);
-            	            actual_time = Integer.parseInt(current_time.toString());
-            	            
-            	            /*Message mes = new Message();
-            	            mes.what = 0x1339;
-            	            mes.arg1 = actual_time;
-            	            handler.sendMessage(mes);*/
+               				right_now = Calendar.getInstance();
+               				actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
                			}
                		}
                		mCamera.takePicture(shutter, null, mPicture);
-               		//socket_os = s.getOutputStream();
-               		//Thread.sleep(2000L);
                		
                		synchronized (s)
                		{
                			s.wait();
-               		}
-               		/*while(socket_flag == true)
-               		{
-               			Thread.sleep(200L);
-               		}*/
-               		
-               		/*String path = Environment.getExternalStorageDirectory().getPath()+"/custom_photos"+"/__1.jpg";
-               		File myFile = new File (path);
-                    byte [] mybytearray  = new byte [(int)myFile.length()];
-                    FileInputStream fis = new FileInputStream(myFile);
-                    BufferedInputStream bis = new BufferedInputStream(fis);
-                    bis.read(mybytearray,0,mybytearray.length);
-                    OutputStream os = s.getOutputStream();
-                    System.out.println("Sending...");
-                    os.write(mybytearray,0,mybytearray.length);
-                    os.flush();*/
-               	    
+               		}             	    
                		
                	} else if(message.equals("ping"))
                	{
@@ -173,7 +143,7 @@ class CommsThread implements Runnable {
             } catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} finally {
+			} /*finally {
             	if (is != null) {
             		try {
 						is.close();
@@ -188,7 +158,7 @@ class CommsThread implements Runnable {
 						e.printStackTrace();
 					}
             	}
-            }
+            }*/
         }
         
     }
