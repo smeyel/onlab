@@ -2,7 +2,7 @@
 #define __CONFIGMANAGERBASE_H_
 
 #include <iostream>	// only for debug...
-#include "SimpleIni.h"
+//#include "SimpleIni.h"
 
 namespace MiscTimeAndConfig
 {
@@ -11,12 +11,13 @@ namespace MiscTimeAndConfig
 	*/
 	class ConfigManagerBase
 	{
-		CSimpleIniA ini;
+//		CSimpleIniA ini;
 
 		/** This method is called by init of the base class to read the configuration values.
 			Override it to read the value of the additional config properfies from the ini file.
 		*/
-		virtual bool readConfiguration(CSimpleIniA *ini);
+//		virtual bool readConfiguration(CSimpleIniA *ini);
+		virtual bool readConfiguration();
 
 	public:
 		/** Do not override, just call it. It initializes SimpleIni and calles

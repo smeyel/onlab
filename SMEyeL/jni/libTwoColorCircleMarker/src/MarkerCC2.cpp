@@ -4,15 +4,12 @@
 #include <opencv2/core/mat.hpp>
 #include <stdlib.h>
 #include <math.h>
-//#include "FastColorFilter.h"	// For color codes
 #include "../include/FastColorFilter.h"	// For color codes
-//#include "TwoColorLocator.h"
 #include "../include/TwoColorLocator.h"
-//#include "MarkerCC2.h"
 #include "../include/MarkerCC2.h"
 
-//#include "TimeMeasurementCodeDefines.h"
-//#include "ConfigManagerBase.h"
+#include "../include/TimeMeasurementCodeDefines.h"
+#include "../../libMiscTimeAndConfig/include/ConfigManagerBase.h"
 
 #define COLORCODE_INITIAL 254	// Used to indicate no valid value, even no "unrecognized color"
 #define MAXINVALIDCOLORNUM 10	// Line scanning stops after so many pixels with invalid color (used by ellipse fitting)
@@ -21,11 +18,12 @@ using namespace cv;
 using namespace std;
 using namespace TwoColorCircleMarker;
 
-//// Config manager
-//MarkerCC2::ConfigManager MarkerCC2::configManager;
-//
+// Config manager
+MarkerCC2::ConfigManager MarkerCC2::configManager;
+
 //bool MarkerCC2::ConfigManager::readConfiguration(CSimpleIniA *ini)
-//{
+bool MarkerCC2::ConfigManager::readConfiguration()
+{
 //	showMarkerCodeOnImageDec = ini->GetBoolValue("MarkerCC2","showMarkerCodeOnImageDec",false,NULL);
 //	showMarkerCodeOnImageHex = ini->GetBoolValue("MarkerCC2","showMarkerCodeOnImageHex",false,NULL);
 //	verboseLineScanning = ini->GetBoolValue("MarkerCC2","verboseLineScanning",false,NULL);
@@ -34,13 +32,21 @@ using namespace TwoColorCircleMarker;
 //	verboseMarkerCodeValidation = ini->GetBoolValue("MarkerCC2","verboseMarkerCodeValidation",false,NULL);
 //	verboseTxt_LineRejectionReason = ini->GetBoolValue("MarkerCC2","verboseTxt_LineRejectionReason",false,NULL);
 //	verboseTxt_MarkerCodeValidation = ini->GetBoolValue("MarkerCC2","verboseTxt_MarkerCodeValidation",false,NULL);
-//	return true;	// Successful
-//}
+	showMarkerCodeOnImageDec = true;
+	showMarkerCodeOnImageHex = true;
+	verboseLineScanning = false;
+	verboseEllipseFitting = false;
+	verboseEllipseScanning = false;
+	verboseMarkerCodeValidation = false;
+	verboseTxt_LineRejectionReason = false;
+	verboseTxt_MarkerCodeValidation = false;
+	return true;	// Successful
+}
 
 
 void MarkerCC2::init(char *configFileName)
 {
-//	configManager.init(configFileName);
+	configManager.init(configFileName);
 }
 
 
@@ -79,29 +85,29 @@ void MarkerCC2::readCode(Mat &srcCC, Rect &rect)
 	// --- Analyse and validate the ellpise reading results
 	validateAndConsolidateMarkerCode();
 
-//	// --- Verbose
-//	if (verboseImage != NULL && (configManager.showMarkerCodeOnImageDec || configManager.showMarkerCodeOnImageHex))
-//	{
-//		char tmpCodeString[255];
-//		if (configManager.showMarkerCodeOnImageDec)
-//		{
-//			sprintf(tmpCodeString,"%d",MarkerID);
-//		}
-//		else
-//		{
-//			sprintf(tmpCodeString,"%X",MarkerID);
-//		}
-//		string debugtxt(tmpCodeString);
-//
-//		if (isValid)
-//		{
-//			putText(*verboseImage,debugtxt,center,FONT_HERSHEY_PLAIN,1,Scalar(0,255,0),2);
-//		}
-//		else
-//		{
-//			putText(*verboseImage,debugtxt,center,FONT_HERSHEY_PLAIN,1,Scalar(0,0,255),2);
-//		}
-//	}
+	// --- Verbose
+	if (verboseImage != NULL && (configManager.showMarkerCodeOnImageDec || configManager.showMarkerCodeOnImageHex))
+	{
+		char tmpCodeString[255];
+		if (configManager.showMarkerCodeOnImageDec)
+		{
+			sprintf(tmpCodeString,"%d",MarkerID);
+		}
+		else
+		{
+			sprintf(tmpCodeString,"%X",MarkerID);
+		}
+		string debugtxt(tmpCodeString);
+
+		if (isValid)
+		{
+			putText(*verboseImage,debugtxt,center,FONT_HERSHEY_PLAIN,1,Scalar(0,255,0),2);
+		}
+		else
+		{
+			putText(*verboseImage,debugtxt,center,FONT_HERSHEY_PLAIN,1,Scalar(0,0,255),2);
+		}
+	}
 }
 
 // -------------------------------------- internal functions ----------------------------------
@@ -119,11 +125,11 @@ void MarkerCC2::fitBorderEllipses()
 	outerBorderPoints.assign(this->RedOuterBorders,this->RedOuterBorders+8);
 	outerEllipse = fitEllipse(outerBorderPoints);
 
-//	if (verboseImage != NULL && configManager.verboseEllipseFitting)
-//	{
-//		ellipse(*verboseImage,innerEllipse,Scalar(200,200,200));
-//		ellipse(*verboseImage,outerEllipse,Scalar(255,255,255));
-//	}
+	if (verboseImage != NULL && configManager.verboseEllipseFitting)
+	{
+		ellipse(*verboseImage,innerEllipse,Scalar(200,200,200));
+		ellipse(*verboseImage,outerEllipse,Scalar(255,255,255));
+	}
 
 }
 
@@ -152,10 +158,10 @@ void MarkerCC2::scanEllipses(Mat &srcCC)
 		rawMarkerIDBitCC[bitIdx]=srcCC.at<uchar>(location);
 		bitLocations[bitIdx] = location;
 		bitIdx++;
-//		if (verboseImage!=NULL && configManager.verboseEllipseScanning)
-//		{
-//			circle(*verboseImage,location,3,Scalar(255,255,255));
-//		}
+		if (verboseImage!=NULL && configManager.verboseEllipseScanning)
+		{
+			circle(*verboseImage,location,3,Scalar(255,255,255));
+		}
 	}
 }
 
@@ -252,10 +258,10 @@ bool MarkerCC2::findBordersAlongLine(Mat &srcCC, int dir)
 					break;
 				default:
 					// This cannot be OK.
-//					if (configManager.verboseTxt_LineRejectionReason)
-//					{
-//						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir="<<dir<<endl;
-//					}
+					if (configManager.verboseTxt_LineRejectionReason)
+					{
+						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir="<<dir<<endl;
+					}
 					return false;	// Immediate reject
 				}
 				break;
@@ -270,10 +276,10 @@ bool MarkerCC2::findBordersAlongLine(Mat &srcCC, int dir)
 					break;
 				case COLORCODE_GRN:
 					// Green cannot come here. If it does, marker is rejected.
-//					if (configManager.verboseTxt_LineRejectionReason)
-//					{
-//						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir="<<dir<<endl;
-//					}
+					if (configManager.verboseTxt_LineRejectionReason)
+					{
+						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir="<<dir<<endl;
+					}
 					return false;	// Immediate reject
 				}
 				break;
@@ -288,10 +294,10 @@ bool MarkerCC2::findBordersAlongLine(Mat &srcCC, int dir)
 					break;
 				case COLORCODE_BLU:
 					// Blue cannot come here. Marker is rejected
-//					if (configManager.verboseTxt_LineRejectionReason)
-//					{
-//						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found BLU after RED, dir="<<dir<<endl;
-//					}
+					if (configManager.verboseTxt_LineRejectionReason)
+					{
+						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found BLU after RED, dir="<<dir<<endl;
+					}
 					return false;	// Immediate reject
 					break;
 				case COLORCODE_NONE:
@@ -309,29 +315,29 @@ bool MarkerCC2::findBordersAlongLine(Mat &srcCC, int dir)
 			}
 		}
 
-//		// Show small circle with color representing current finite state machine state
-//		if (verboseImage != NULL && configManager.verboseLineScanning )
-//		{
-//			//switch(currentAreaColorCode)
-//			switch(colorValue)
-//			{
-//			case COLORCODE_BLU:
-//				circle(*verboseImage, lineIt.pos(), 2, Scalar(255,100,100));	// In BGR!
-//				break;
-//			case COLORCODE_RED:
-//				circle(*verboseImage, lineIt.pos(), 2, Scalar(100,100,255));	// In BGR!
-//				break;
-//			case COLORCODE_GRN:
-//				circle(*verboseImage, lineIt.pos(), 2, Scalar(100,255,100));
-//				break;
-//			case COLORCODE_NONE:
-//				circle(*verboseImage, lineIt.pos(), 2, Scalar(100,100,100));
-//				break;
-//			case COLORCODE_INITIAL:
-//				circle(*verboseImage, lineIt.pos(), 2,  Scalar(0,0,0));
-//				break;
-//			}
-//		}
+		// Show small circle with color representing current finite state machine state
+		if (verboseImage != NULL && configManager.verboseLineScanning )
+		{
+			//switch(currentAreaColorCode)
+			switch(colorValue)
+			{
+			case COLORCODE_BLU:
+				circle(*verboseImage, lineIt.pos(), 2, Scalar(255,100,100));	// In BGR!
+				break;
+			case COLORCODE_RED:
+				circle(*verboseImage, lineIt.pos(), 2, Scalar(100,100,255));	// In BGR!
+				break;
+			case COLORCODE_GRN:
+				circle(*verboseImage, lineIt.pos(), 2, Scalar(100,255,100));
+				break;
+			case COLORCODE_NONE:
+				circle(*verboseImage, lineIt.pos(), 2, Scalar(100,100,100));
+				break;
+			case COLORCODE_INITIAL:
+				circle(*verboseImage, lineIt.pos(), 2,  Scalar(0,0,0));
+				break;
+			}
+		}
 	}
 
 	return isDirectionValid;
@@ -367,10 +373,10 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 
 	// --- Convert the color code array into a bit array (only 0 and 1)
 	// --- Meanwhile find the green location (start direction)
-//	if (configManager.verboseTxt_MarkerCodeValidation )
-//	{
-//		cout << "rawBits:";
-//	}
+	if (configManager.verboseTxt_MarkerCodeValidation )
+	{
+		cout << "rawBits:";
+	}
 
 	bool isGreen;
 	for (int bitIdx=0; bitIdx<32; bitIdx++)
@@ -397,24 +403,24 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 			lastGreenIdx = bitIdx;
 		}
 
-//		if (configManager.verboseTxt_MarkerCodeValidation )
-//		{
-//			if (isGreen)
-//			{
-//				if (greenRunLength>1)
-//				{
-//					cout << "G";	// longer green sequence
-//				}
-//				else
-//				{
-//					cout << "g";	// short green sequence
-//				}
-//			}
-//			else
-//			{
-//				cout << rawbits[bitIdx];
-//			}
-//		}
+		if (configManager.verboseTxt_MarkerCodeValidation )
+		{
+			if (isGreen)
+			{
+				if (greenRunLength>1)
+				{
+					cout << "G";	// longer green sequence
+				}
+				else
+				{
+					cout << "g";	// short green sequence
+				}
+			}
+			else
+			{
+				cout << rawbits[bitIdx];
+			}
+		}
 
 	}
 	if (lastGreenIdx >= firstGreenIdx)
@@ -432,10 +438,10 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 		isOrientationReferenceAngleValid = true;
 	}
 
-//	if (configManager.verboseTxt_MarkerCodeValidation )
-//	{
-//		cout << ", GRN@(" << firstGreenIdx << "-" << lastGreenIdx << ")->" << greenIdx << endl;
-//	}
+	if (configManager.verboseTxt_MarkerCodeValidation )
+	{
+		cout << ", GRN@(" << firstGreenIdx << "-" << lastGreenIdx << ")->" << greenIdx << endl;
+	}
 
 	// --- Reorder bits to start from the green location
 	if (greenIdx<0)	// If green is not found, marker ID cannot be valid.
@@ -449,53 +455,53 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	int finalBits[8];	// Final bits of outer code
 	unsigned int code = 0;	// Numerical value of code
 	// Calculate code
-//	if (configManager.verboseTxt_MarkerCodeValidation )
-//	{
-//		cout << "GrnIdx:" << greenIdx << ", code: ";
-//	}
-//	for(int i=0; i<8; i++)
-//	{
-//		realBitIdx[i] = (greenIdx+4*i) % 32;
-//		finalBits[i] = rawbits[realBitIdx[i]];
-//		if (configManager.verboseTxt_MarkerCodeValidation )
-//		{
-//			cout << finalBits[i];
-//		}
-//		code |= finalBits[i];
-//		if (i<7)
-//			code <<= 1;
-//	}
-//	// Verbose code reading and green location
-//	if (configManager.verboseMarkerCodeValidation )
-//	{
-//		// Show locations and corresponding values really used
-//		for (int i=0; i<8; i++)
-//		{
-//			Point location = bitLocations[realBitIdx[i]];
-//			if (finalBits[i])	// This bit is 1: white circle with black outer edge
-//			{
-//				circle(*verboseImage,location,5,Scalar(255,255,255),3);
-//				circle(*verboseImage,location,10,Scalar(0,0,0),1);
-//			}
-//			else	// This bit is 0: black circle with white outer edge
-//			{
-//				circle(*verboseImage,location,5,Scalar(0,0,0),3);
-//				circle(*verboseImage,location,10,Scalar(255,255,255),1);
-//			}
-//		}
-//
-//		// Little green circle with white outer edge indicates green location
-//		Point greenLocation = bitLocations[greenIdx];
-//		circle(*verboseImage,greenLocation,3,Scalar(0,255,0),2);
-//		circle(*verboseImage,greenLocation,4,Scalar(255,255,255),1);
-//	}
+	if (configManager.verboseTxt_MarkerCodeValidation )
+	{
+		cout << "GrnIdx:" << greenIdx << ", code: ";
+	}
+	for(int i=0; i<8; i++)
+	{
+		realBitIdx[i] = (greenIdx+4*i) % 32;
+		finalBits[i] = rawbits[realBitIdx[i]];
+		if (configManager.verboseTxt_MarkerCodeValidation )
+		{
+			cout << finalBits[i];
+		}
+		code |= finalBits[i];
+		if (i<7)
+			code <<= 1;
+	}
+	// Verbose code reading and green location
+	if (configManager.verboseMarkerCodeValidation )
+	{
+		// Show locations and corresponding values really used
+		for (int i=0; i<8; i++)
+		{
+			Point location = bitLocations[realBitIdx[i]];
+			if (finalBits[i])	// This bit is 1: white circle with black outer edge
+			{
+				circle(*verboseImage,location,5,Scalar(255,255,255),3);
+				circle(*verboseImage,location,10,Scalar(0,0,0),1);
+			}
+			else	// This bit is 0: black circle with white outer edge
+			{
+				circle(*verboseImage,location,5,Scalar(0,0,0),3);
+				circle(*verboseImage,location,10,Scalar(255,255,255),1);
+			}
+		}
+
+		// Little green circle with white outer edge indicates green location
+		Point greenLocation = bitLocations[greenIdx];
+		circle(*verboseImage,greenLocation,3,Scalar(0,255,0),2);
+		circle(*verboseImage,greenLocation,4,Scalar(255,255,255),1);
+	}
 
 
-//	// Verbose codes
-//	if (configManager.verboseTxt_MarkerCodeValidation )
-//	{
-//		cout << ", code=" << code << endl;
-//	}
+	// Verbose codes
+	if (configManager.verboseTxt_MarkerCodeValidation )
+	{
+		cout << ", code=" << code << endl;
+	}
 
 	MarkerID = code;
 

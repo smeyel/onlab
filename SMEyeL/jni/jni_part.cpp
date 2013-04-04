@@ -8,9 +8,14 @@
 #include "libTwoColorCircleMarker/include/FastColorFilter.h"
 #include "libTwoColorCircleMarker/include/MarkerCC2Tracker.h"
 #include "libTwoColorCircleMarker/include/DetectionResultExporterBase.h"
+#include "libTwoColorCircleMarker/include/TimeMeasurementCodeDefines.h"
 
 #define LOG_TAG "SMEyeL"
+#define LOGV(...) ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__))
+#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
 
 using namespace std;
 using namespace cv;
@@ -54,7 +59,7 @@ public:
 	{
 //		stream << "FID:" << currentFrameIdx << ",CID:" << currentCamID << " ";
 //		marker->exportToTextStream(&stream);
-		LOGD("aaaaaamarkerfound");
+//		LOGD("aaaaaamarkerfound");
 		std::cout << "eeeeeeeee";
 //		stream << endl;
 	}
@@ -218,6 +223,13 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FastColor(JNIEnv*, jobje
 //	Mat* mOut = markerHandler.visColorCodeFrame;
 	Mat* mOut = tracker.visColorCodeFrame;
 	cvtColor(*mOut, mResult, COLOR_BGR2RGBA);
+
+	LOGD("ProcessAll: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::ProcessAll));
+	LOGD("FastColorFilter: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::FastColorFilter));
+	LOGD("VisualizeDecomposedImage: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::VisualizeDecomposedImage));
+	LOGD("TwoColorLocator: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::TwoColorLocator));
+	LOGD("LocateMarkers: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::LocateMarkers));
+	LOGD("---------------------");
 
 }
 }

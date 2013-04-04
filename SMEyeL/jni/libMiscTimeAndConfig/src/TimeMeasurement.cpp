@@ -1,6 +1,6 @@
 #include <opencv2/core/core.hpp>
 
-#include "TimeMeasurement.h"
+#include "../include/TimeMeasurement.h"
 
 #define USEPRECISIONTIMING	// Use getTickCount() instead of clock()
 

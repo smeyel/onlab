@@ -1,12 +1,11 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
-//#include "TwoColorLocator.h"
 #include "../include/TwoColorLocator.h"
 
 #include <assert.h>
 
-//#include "TimeMeasurementCodeDefines.h"
+#include "../include/TimeMeasurementCodeDefines.h"
 
 // Maximal distance we look for the border of a rectangle
 #define MAXSCANDISTANCE 100
@@ -16,17 +15,21 @@
 
 using namespace cv;
 using namespace TwoColorCircleMarker;
-using namespace std;
 
-//// Config manager
+// Config manager
 //bool TwoColorLocator::ConfigManager::readConfiguration(CSimpleIniA *ini)
-//{
+bool TwoColorLocator::ConfigManager::readConfiguration()
+{
 //	verboseRectConsolidationCandidates = ini->GetBoolValue("TwoColorLocator","verboseRectConsolidationCandidates",false,NULL);
 //	verboseRectConsolidationResults = ini->GetBoolValue("TwoColorLocator","verboseRectConsolidationResults",false,NULL);
 //	verboseTxt_RectConsolidation = ini->GetBoolValue("TwoColorLocator","verboseTxt_RectConsolidation",false,NULL);
 //	verboseTxt_RectConsolidationSummary = ini->GetBoolValue("TwoColorLocator","verboseTxt_RectConsolidationSummary",false,NULL);
-//	return true;	// Successful
-//}
+	verboseRectConsolidationCandidates = false;
+	verboseRectConsolidationResults = false;
+	verboseTxt_RectConsolidation = false;
+	verboseTxt_RectConsolidationSummary = false;
+	return true;	// Successful
+}
 
 TwoColorLocator::TwoColorLocator()
 {
@@ -35,7 +38,7 @@ TwoColorLocator::TwoColorLocator()
 
 void TwoColorLocator::init(char *configFileName)
 {
-//	configManager.init(configFileName);
+	configManager.init(configFileName);
 }
 
 // Called externally after FastColorFilter has detected its candidate rectangles
@@ -56,11 +59,11 @@ void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int 
 	{
 		candidateRectList.push_front(candidateRects[i]);
 
-//		// Verbose candidate rectangles
-//		if (verboseImage!=NULL && configManager.verboseRectConsolidationCandidates)
-//		{
-//			rectangle(*verboseImage,candidateRects[i],Scalar(200,255,200));
-//		}
+		// Verbose candidate rectangles
+		if (verboseImage!=NULL && configManager.verboseRectConsolidationCandidates)
+		{
+			rectangle(*verboseImage,candidateRects[i],Scalar(200,255,200));
+		}
 	}
 
 	// Go along every candidate rectangle,
@@ -98,11 +101,11 @@ void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int 
 		// Update rect to its real size
 		if (updateRectToRealSize(srcCC, newRect, verboseImage))
 		{
-//			// Verbose: show new rectangle
-//			if (verboseImage!=NULL && configManager.verboseRectConsolidationResults)
-//			{
-//				rectangle(*verboseImage,newRect,Scalar(0,255,0));
-//			}
+			// Verbose: show new rectangle
+			if (verboseImage!=NULL && configManager.verboseRectConsolidationResults)
+			{
+				rectangle(*verboseImage,newRect,Scalar(0,255,0));
+			}
 
 			// Add to resultRectangles
 			resultRectangles.push_back(newRect);
@@ -110,10 +113,10 @@ void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int 
 		}
 	}
 
-//	if (configManager.verboseTxt_RectConsolidationSummary)
-//	{
-//		cout << "Rect consolidation effect: " << initialRectNum << " rect -> " << resultRectNum << endl;
-//	}
+	if (configManager.verboseTxt_RectConsolidationSummary)
+	{
+		cout << "Rect consolidation effect: " << initialRectNum << " rect -> " << resultRectNum << endl;
+	}
 }
 
 // Returns true if rect seems to be valid
@@ -133,20 +136,20 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 	}
 	else
 	{
-//		if (configManager.verboseTxt_RectConsolidation)
-//		{
-//			cout << "TwoColorLocator::updateRectToRealSize(): horizontal -> REJECT" << endl;
-//		}
+		if (configManager.verboseTxt_RectConsolidation)
+		{
+			cout << "TwoColorLocator::updateRectToRealSize(): horizontal -> REJECT" << endl;
+		}
 		return false;
 	}
 
 	int topLength = findColorAlongLine(srcCC, center, Point(center.x, center.y-MAXSCANDISTANCE), COLORCODE_BLU, COLORCODE_RED, verboseImage);
 	int bottomLength = findColorAlongLine(srcCC, center, Point(center.x, center.y+MAXSCANDISTANCE), COLORCODE_BLU, COLORCODE_RED, verboseImage);
 
-//	if (configManager.verboseTxt_RectConsolidation)
-//	{
-//		cout << "Rect consolidation: x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height;
-//	}
+	if (configManager.verboseTxt_RectConsolidation)
+	{
+		cout << "Rect consolidation: x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height;
+	}
 	// Update rect sizes (if the borders were really found)
 	if (topLength != -1 && bottomLength != -1)
 	{
@@ -154,18 +157,18 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 		newRect.y = center.y-topLength;
 		newRect.width = leftLength + rightLength;
 		newRect.height = topLength + bottomLength;
-//		if (configManager.verboseTxt_RectConsolidation)
-//		{
-//			cout << " -> x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height << endl;
-//		}
+		if (configManager.verboseTxt_RectConsolidation)
+		{
+			cout << " -> x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height << endl;
+		}
 		return true;
 	}
 	else
 	{
-//		if (configManager.verboseTxt_RectConsolidation)
-//		{
-//			cout << " -> REJECT" << endl;
-//		}
+		if (configManager.verboseTxt_RectConsolidation)
+		{
+			cout << " -> REJECT" << endl;
+		}
 		return false;
 	}
 }

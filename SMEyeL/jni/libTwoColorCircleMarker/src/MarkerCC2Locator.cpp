@@ -1,19 +1,11 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
-//#include "TwoColorLocator.h"
 #include "../include/TwoColorLocator.h"
-//#include "MarkerCC2Locator.h"
 #include "../include/MarkerCC2Locator.h"
-//#include "MarkerCC2.h"
 #include "../include/MarkerCC2.h"
 
-//#include "DetectionResultExporterBase.h"
 #include "../include/DetectionResultExporterBase.h"
-#include <android/log.h>
-
-#define LOG_TAG "SMEyeL"
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
 
 using namespace cv;
 using namespace TwoColorCircleMarker;
@@ -52,14 +44,10 @@ void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<Rect> *candidateRectL
 			foundValidMarker = true;
 		}
 
-		LOGD("aaaaaaavalamivan");
-
 		// Exports invalid markers (promising candidate rectangles) as well! (But with isCenterValid=false)
 		if ((newMarker.isCenterValid || newMarker.isValid) && ResultExporter!=NULL)
 		{
-			LOGD("aaaaaaavalamitenylegvan");
 			ResultExporter->writeResult(&newMarker);
-
 		}
 	}
 }
