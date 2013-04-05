@@ -3,6 +3,7 @@
 	<name>Photographer</name>
 	<comment></comment>
 	<projects>
+		<project>OpenCV Library - 2.4.4</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

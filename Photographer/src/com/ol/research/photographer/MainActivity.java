@@ -1,8 +1,6 @@
 package com.ol.research.photographer;
 
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -13,6 +11,10 @@ import java.util.Enumeration;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -21,7 +23,6 @@ import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.net.http.AndroidHttpClient;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -185,6 +186,46 @@ public class MainActivity extends Activity {
 		myCommsThread.start();	
 	}
 
+    private static final String  TAG = "TMEAS";
+
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i(TAG, "OpenCV loaded successfully");
+
+                    double freq = Core.getTickFrequency();	// May change!!! OK to poll it every time? (And accept is equals at begin and end...) 
+                    Log.i(TAG,"getTickFrequency() == "+freq);
+                    long prevTickCount = 0;
+                    for(int i=0; i<10; i++)
+                    {
+                        long currentTickCount = Core.getTickCount();
+                        long delta = currentTickCount - prevTickCount;
+                        prevTickCount = currentTickCount;
+                        Log.i(TAG,"delta getTickCount() == "+delta);
+                    }
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
+        }
+    };
+	
+	
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
+
+//        timeMeasurement = new TimeMeasurement();
+//        timeMeasurement.loadOpenCVAsync(this);
+    }
+	
 	@Override
 	protected void onStop(){
 		if(mCamera != null)
