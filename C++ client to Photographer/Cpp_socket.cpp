@@ -240,7 +240,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 
 int main( int argc, char *argv[])
 {
-	char *ip = "192.168.245.101";
+	char *ip = "152.66.173.64";
 	int port = 6000;
 	PhoneProxy proxy;
 

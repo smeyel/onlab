@@ -9,16 +9,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Calendar;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 
 class CommsThread implements Runnable {
@@ -28,6 +27,8 @@ class CommsThread implements Runnable {
 	static OutputStream socket_os;
 	static Socket s = null;
 	ShutterCallback shutter;
+	
+    private static final String TAG = "COMM";
 	
 	Calendar right_now;
 //	Calendar last_midnight = MainActivity.last_midnight;
@@ -81,7 +82,9 @@ class CommsThread implements Runnable {
             OutputStream out = null;
             m.what = MainActivity.MSG_ID;
             try {          	 	
-                    s = MainActivity.ss.accept();                   
+            		Log.i(TAG, "Waiting for connection...");
+                    s = MainActivity.ss.accept(); 
+                    Log.i(TAG, "Receiving...");
                     is = s.getInputStream();
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     int ch;
@@ -91,6 +94,7 @@ class CommsThread implements Runnable {
                    
                	String message = new String(bos.toByteArray());
                	
+                Log.i(TAG, "Processing...");
                	try {
                		JSONObject jObj = new JSONObject(message);
                		String type = jObj.getString("type");
@@ -103,10 +107,12 @@ class CommsThread implements Runnable {
     	    		
                	if (type.equals("takepicture"))
                	{
+                    Log.i(TAG, "Cmd: take picture...");
                		/*if(time_to_wait>0)
                		{
                		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
                		}*/
+                    Log.i(TAG, "Waiting for desired timestamp...");
                		if(desired_timestamp != 0 && desired_timestamp > actual_time)
                		{
                			while(desired_timestamp >= (actual_time+time_offset)) //esetleges megoldás: offset kezelése -> (actual_time+300)
@@ -115,28 +121,31 @@ class CommsThread implements Runnable {
                				actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
                			}
                		}
+                    Log.i(TAG, "Taking picture...");
                		mCamera.takePicture(shutter, null, mPicture);
                		
+                    Log.i(TAG, "Waiting for sync...");
                		synchronized (s)
                		{
                			s.wait();
                		}             	    
                		
-               	} else if(message.equals("ping"))
+               	} else if(message.contains("ping")) // TODO: ez a feltétel soha nem fog teljesulni!
                	{
+                    Log.i(TAG, "Cmd: ping...");
                		out = s.getOutputStream();       
                     DataOutputStream output = new DataOutputStream(out);     
                     output.writeUTF("pong");
                     output.flush();
                	}
                	MainActivity.mClientMsg = message;
+                Log.i(TAG, "Sending response...");
                	handler.sendMessage(m);
                	
             
                	} catch (JSONException e) {
                     Log.e("JSON Parser", "Error parsing data " + e.toString());
                 }   	
-               	
             } catch (IOException e) {
                 e.printStackTrace();
                 
