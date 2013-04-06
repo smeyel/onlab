@@ -127,10 +127,14 @@ class CommsThread implements Runnable {
 	               		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
 	               		}*/
 	                    Log.i(TAG, "Waiting for desired timestamp...");
+	                    TempTickCountStorage.StartWait = TempTickCountStorage.GetTimeStamp();
 	                    TempTickCountStorage.DesiredTimeStamp = desired_timestamp; 
 	               		if(desired_timestamp != 0 && desired_timestamp > actual_time)
 	               		{
-	               			while(desired_timestamp >= (actual_time+time_offset)) //esetleges megoldás: offset kezelése -> (actual_time+300)
+	               			// TODO: time_offset is now calculated before OpenCV initializes, so
+	               			//	its value is of no meaning... should be fixed later.
+//	               			while(desired_timestamp >= (actual_time+time_offset))
+	               			while(desired_timestamp >= actual_time) //esetleges megoldás: offset kezelése -> (actual_time+300)
 	               			{
 	               				actual_time = TempTickCountStorage.GetTimeStamp();
 	               				// TODO: add sleep if the desired timestamp is still far away...

@@ -27,6 +27,7 @@ public class TempTickCountStorage {
 	static public long ConnectionReceived;
 	static public long CommandReceived;
 
+	static public long StartWait;
 	static public long DesiredTimeStamp;	// Received in the command
 	
 	static public long TakingPicture;
@@ -63,6 +64,7 @@ public class TempTickCountStorage {
 		Log.i(TAG,"TickFrequency: "+TickFrequency);
 		Log.i(TAG,"ConnectionReceived: "+ConnectionReceived);
 		Log.i(TAG,"CommandReceived: "+CommandReceived);
+		Log.i(TAG,"StartWait: "+StartWait+")");
 		Log.i(TAG,"(DesiredTimeStamp: "+DesiredTimeStamp+")");
 		Log.i(TAG,"TakingPicture: "+TakingPicture);
 		Log.i(TAG,"OnShutterEvent: "+OnShutterEvent);
@@ -72,7 +74,8 @@ public class TempTickCountStorage {
 		Log.i(TAG,"OnResponseSent: "+OnResponseSent);
 		
 		double ReceptionMs = (double)(CommandReceived - ConnectionReceived)/1000.0;
-		double PreProcessMs = (double)(TakingPicture - CommandReceived)/1000.0;
+		double PreProcessMs = (double)(StartWait - CommandReceived)/1000.0;
+		double WaitingMs = (double)(TakingPicture - StartWait)/1000.0;
 		double TakePictureMs = (double)(OnShutterEvent - TakingPicture)/1000.0;
 		double PostProcessJPEGMs = (double)(OnPictureTakenEvent - OnShutterEvent)/1000.0;
 		double PostProcessPostJpegMs = (double)(OnSendingResponse - OnPictureTakenEvent)/1000.0;
@@ -87,6 +90,7 @@ public class TempTickCountStorage {
 		
 		Log.i(TAG,"Reception: "+ReceptionMs);
 		Log.i(TAG,"PreProcess: "+PreProcessMs);
+		Log.i(TAG,"WaitingMs: "+WaitingMs);
 		Log.i(TAG,"TakePicture: "+TakePictureMs);
 		Log.i(TAG,"PostProcessJPEG: "+PostProcessJPEGMs);
 		Log.i(TAG,"PostProcessPostJpeg: "+PostProcessPostJpegMs);
@@ -97,7 +101,7 @@ public class TempTickCountStorage {
 		Log.i(TAG,"DelayTakePicture: "+DelayTakePicture);
 		Log.i(TAG,"DelayOnShutter: "+DelayOnShutter);
 		
-		Log.i(TAGCSV,"CSV;"+ReceptionMs+";"+PreProcessMs+";"
+		Log.i(TAGCSV,"CSV;"+ReceptionMs+";"+PreProcessMs+";"+WaitingMs+";"
 				+TakePictureMs+";"+PostProcessJPEGMs+";"+PostProcessPostJpegMs+";"
 				+SendingJsonMs+";"+SendingJpegMs+";"+AllMs+";"+AllNoCommMs+";"+DesiredTimeStamp
 				+";"+DelayTakePicture+";"+DelayOnShutter);
