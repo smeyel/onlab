@@ -45,6 +45,8 @@ public class MainActivity extends Activity {
 	 public static final int SERVERPORT = 6000;
 	 protected static final int TIME_ID = 0x1338;
 	 
+	 static byte[] lastPhotoData;
+	 
 	// static Calendar last_midnight;
 	 static long calendar_offset;
 	 static Calendar right_now;
@@ -70,7 +72,9 @@ public class MainActivity extends Activity {
 	            Log.v("Photographer", "Picture saved at path: " + pictureFile);*/
 	            
 	            Intent intent = new Intent(MainActivity.this, SendImageService.class);
-				intent.putExtra("BYTE_ARRAY", data);
+				//intent.putExtra("BYTE_ARRAY", data);
+	            lastPhotoData = data;
+
 				/*synchronized(this)
 				{
 					try {

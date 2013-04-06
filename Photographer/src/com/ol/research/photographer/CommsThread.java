@@ -26,6 +26,7 @@ class CommsThread implements Runnable {
 	PictureCallback mPicture;
 	static OutputStream socket_os;
 	static Socket s = null;
+	static boolean isSendComplete;	// Used by SendImageService
 	ShutterCallback shutter;
 	
     private static final String TAG = "COMM";
@@ -81,16 +82,17 @@ class CommsThread implements Runnable {
             InputStream is = null;
             OutputStream out = null;
             m.what = MainActivity.MSG_ID;
-            try {          	 	
-            		Log.i(TAG, "Waiting for connection...");
-                    s = MainActivity.ss.accept(); 
-                    Log.i(TAG, "Receiving...");
-                    is = s.getInputStream();
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    int ch;
-                    while ((ch=is.read())!=-1) {
-                    	bos.write(ch);
-                    }
+            try
+            {          	 	
+        		Log.i(TAG, "Waiting for connection...");
+                s = MainActivity.ss.accept(); 
+                Log.i(TAG, "Receiving...");
+                is = s.getInputStream();
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                int ch;
+                while ((ch=is.read())!=-1) {
+                	bos.write(ch);
+                }
                    
                	String message = new String(bos.toByteArray());
                	
@@ -105,50 +107,54 @@ class CommsThread implements Runnable {
     	            //long time_to_wait = desired_timestamp - (actual_time + time_offset);
     	    		
     	    		
-               	if (type.equals("takepicture"))
-               	{
-                    Log.i(TAG, "Cmd: take picture...");
-               		/*if(time_to_wait>0)
-               		{
-               		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
-               		}*/
-                    Log.i(TAG, "Waiting for desired timestamp...");
-               		if(desired_timestamp != 0 && desired_timestamp > actual_time)
-               		{
-               			while(desired_timestamp >= (actual_time+time_offset)) //esetleges megoldás: offset kezelése -> (actual_time+300)
-               			{
-               				right_now = Calendar.getInstance();
-               				actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
-               			}
-               		}
-                    Log.i(TAG, "Taking picture...");
-               		mCamera.takePicture(shutter, null, mPicture);
-               		
-                    Log.i(TAG, "Waiting for sync...");
-               		synchronized (s)
-               		{
-               			s.wait();
-               		}             	    
-               		
-               	} else if(message.contains("ping")) // TODO: ez a feltétel soha nem fog teljesulni!
-               	{
-                    Log.i(TAG, "Cmd: ping...");
-               		out = s.getOutputStream();       
-                    DataOutputStream output = new DataOutputStream(out);     
-                    output.writeUTF("pong");
-                    output.flush();
-               	}
-               	MainActivity.mClientMsg = message;
-                Log.i(TAG, "Sending response...");
-               	handler.sendMessage(m);
-               	
-            
+	               	if (type.equals("takepicture"))// ----------- TAKE PICTURE command
+	               	{
+	                    Log.i(TAG, "Cmd: take picture...");
+	               		/*if(time_to_wait>0)
+	               		{
+	               		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
+	               		}*/
+	                    Log.i(TAG, "Waiting for desired timestamp...");
+	               		if(desired_timestamp != 0 && desired_timestamp > actual_time)
+	               		{
+	               			while(desired_timestamp >= (actual_time+time_offset)) //esetleges megoldás: offset kezelése -> (actual_time+300)
+	               			{
+	               				right_now = Calendar.getInstance();
+	               				actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
+	               			}
+	               		}
+	                    Log.i(TAG, "Taking picture...");
+	                    isSendComplete = false;	// SendImageService will set this true...
+	               		mCamera.takePicture(shutter, null, mPicture);
+	               		
+	                    Log.i(TAG, "Waiting for sync...");
+	                    while(!isSendComplete)
+	                    {
+		               		synchronized (s)
+		               		{
+		               			// Wait() may also be interrupted,
+		               			// does not necessarily mean that send is complete.
+		               			s.wait();
+		               		}
+		               		Log.i(TAG,"Wait() finished");
+	                    }
+	                    Log.i(TAG, "Sync received, data sent.");
+	               	} else if(type.equals("ping"))	// ----------- PING command
+	               	{
+	                    Log.i(TAG, "Cmd: ping...");
+	               		out = s.getOutputStream();       
+	                    DataOutputStream output = new DataOutputStream(out);     
+	                    output.writeUTF("pong");
+	                    output.flush();
+	               	}
+	               	MainActivity.mClientMsg = message;
+	                Log.i(TAG, "Sending response...");
+	               	handler.sendMessage(m);
                	} catch (JSONException e) {
                     Log.e("JSON Parser", "Error parsing data " + e.toString());
                 }   	
             } catch (IOException e) {
                 e.printStackTrace();
-                
             } catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
