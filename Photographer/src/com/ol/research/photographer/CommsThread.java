@@ -16,7 +16,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import org.json.JSONArray;
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -28,6 +32,7 @@ class CommsThread implements Runnable {
 	static OutputStream socket_os;
 	static Socket s = null;
 	ShutterCallback shutter;
+	private static final String  TAG = "TMEAS";
 	
 	Calendar right_now;
 //	Calendar last_midnight = MainActivity.last_midnight;
@@ -45,28 +50,16 @@ class CommsThread implements Runnable {
         
 		//offset measurement
 		right_now = Calendar.getInstance();
-		//long actual_time = right_now.getTimeInMillis() - last_midnight.getTimeInMillis();
 		long actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
-		mCamera.takePicture(shutter, null, null);
-		/*long[] timearray = new long[10];
-		for(int i=0; i<5; i++)
-		{
-			mCamera.takePicture(shutter, null, null);
-			try {
-				Thread.sleep(1000L);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			timearray[i]=MainActivity.millis_since_midnight;
-		}*/
-		try {
+		//mCamera.takePicture(shutter, null, null);
+
+		/*try {
 			Thread.sleep(1000L);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}
-		long time_offset = MainActivity.millis_since_midnight - actual_time;
+		}*/
+		//long time_offset = MainActivity.millis_since_midnight - actual_time;
 		
         try {
         		MainActivity.ss = new ServerSocket(MainActivity.SERVERPORT);
@@ -74,6 +67,7 @@ class CommsThread implements Runnable {
             e.printStackTrace();
         }
         
+      
         while (!Thread.currentThread().isInterrupted()) {
         	s = null;
         	Message m = new Message();
@@ -103,24 +97,46 @@ class CommsThread implements Runnable {
     	    		
                	if (type.equals("takepicture"))
                	{
-               		/*if(time_to_wait>0)
-               		{
-               		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
-               		}*/
+               		//if(time_to_wait>0)
+               		//{
+               		//Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
+               		//}
                		if(desired_timestamp != 0 && desired_timestamp > actual_time)
                		{
-               			while(desired_timestamp >= (actual_time+time_offset)) //esetleges megoldás: offset kezelése -> (actual_time+300)
+               			//while(desired_timestamp >= (actual_time+time_offset))
+               			while(desired_timestamp >= (actual_time)) //esetleges megoldás: offset kezelése -> (actual_time+300)
                			{
                				right_now = Calendar.getInstance();
                				actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
                			}
                		}
+               		
+               		
+               //		MeasuredTimeValues.FrequBefore_takePicture = Core.getTickFrequency();
+               		MeasuredTimeValues.CurrentTickCountBefore_takePicture = Core.getTickCount();
                		mCamera.takePicture(shutter, null, mPicture);
+               		
                		
                		synchronized (s)
                		{
                			s.wait();
                		}             	    
+               		
+               		Log.i(TAG," getTickCount() before takePicture() == "+ MeasuredTimeValues.CurrentTickCountBefore_takePicture);
+               		Log.i(TAG," getTickCount() right after beginning on onShutter() == "+ MeasuredTimeValues.CurrentTickCountIn_onShutter);
+               		Log.i(TAG," getTickCount() right after beginning on onPictureTaken() == "+ MeasuredTimeValues.CurrentTickCountIn_onPictureTaken);
+               		Log.i(TAG," getTickCount() right after image was sent == "+ MeasuredTimeValues.CurrentTickCountAfter_ImageSent);
+               		
+               		Log.i(TAG," delta between takePicture() and onShutter()  == "+ (MeasuredTimeValues.CurrentTickCountIn_onShutter-MeasuredTimeValues.CurrentTickCountBefore_takePicture));
+               		Log.i(TAG," delta between takePicture() and onPictureTaken()  == "+ (MeasuredTimeValues.CurrentTickCountIn_onPictureTaken-MeasuredTimeValues.CurrentTickCountBefore_takePicture));
+               		Log.i(TAG," delta between onShutter() and onPictureTaken()  == "+ (MeasuredTimeValues.CurrentTickCountIn_onPictureTaken - MeasuredTimeValues.CurrentTickCountIn_onShutter));
+               		Log.i(TAG," delta between onPictureTaken() and after image was sent  == "+ (MeasuredTimeValues.CurrentTickCountAfter_ImageSent-MeasuredTimeValues.CurrentTickCountIn_onPictureTaken));
+               		Log.i(TAG," delta between takePicture() and after image was sent  == "+ (MeasuredTimeValues.CurrentTickCountAfter_ImageSent-MeasuredTimeValues.CurrentTickCountBefore_takePicture));
+               		
+               		Log.i(TAG," Frequency before takePicture() == "+ MeasuredTimeValues.CurrentTickCountBefore_takePicture);
+               		Log.i(TAG," Frequency in onShutter() == "+ MeasuredTimeValues.FrequIn_onShutter);
+               		Log.i(TAG," Frequency in onPictureTaken() == "+ MeasuredTimeValues.FrequIn_onPictureTaken);
+               		Log.i(TAG," Frequency in picture sending service == "+ MeasuredTimeValues.FrequAfter_ImageSent);
                		
                	} else if(message.equals("ping"))
                	{
@@ -143,7 +159,7 @@ class CommsThread implements Runnable {
             } catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} /*finally {
+			} finally {
             	if (is != null) {
             		try {
 						is.close();
@@ -158,7 +174,7 @@ class CommsThread implements Runnable {
 						e.printStackTrace();
 					}
             	}
-            }*/
+            }
         }
         
     }

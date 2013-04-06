@@ -1,15 +1,14 @@
 package com.ol.research.photographer;
 
-import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.opencv.core.Core;
+
 import android.app.IntentService;
 import android.content.Intent;
-import android.os.Environment;
+
 
 public class SendImageService extends IntentService{
 	
@@ -42,6 +41,11 @@ public class SendImageService extends IntentService{
         
         os.write(mybytearray,0,mybytearray.length);
         
+        
+        MeasuredTimeValues.CurrentTickCountAfter_ImageSent = Core.getTickCount();
+        MeasuredTimeValues.FrequAfter_ImageSent = Core.getTickFrequency();
+   		
+        
         /*try {
 			os.close();
 		} catch (IOException e) {
@@ -60,9 +64,5 @@ public class SendImageService extends IntentService{
             e.printStackTrace();
             
 		} 
-		// Send response
-		/*Intent respIntent = new Intent(MainActivity.KEY_REST_FILTER);
-		respIntent.putExtra(MainActivity.KEY_REST_RESPONSE, result);
-	    LocalBroadcastManager.getInstance(this).sendBroadcast(respIntent);*/
 	}
 }

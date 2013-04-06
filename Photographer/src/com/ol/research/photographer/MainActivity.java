@@ -45,15 +45,20 @@ public class MainActivity extends Activity {
 	 public static final int SERVERPORT = 6000;
 	 protected static final int TIME_ID = 0x1338;
 	 
-	// static Calendar last_midnight;
+	 
 	 static long calendar_offset;
 	 static Calendar right_now;
 	 static long millis_since_midnight;
+	 
+	 
 	  
 	 private PictureCallback mPicture = new PictureCallback() {
 
 	        @Override
 	        public void onPictureTaken(byte[] data, Camera camera) {
+	    		
+	        	MeasuredTimeValues.CurrentTickCountIn_onPictureTaken = Core.getTickCount();
+	    		MeasuredTimeValues.FrequIn_onPictureTaken = Core.getTickFrequency();
 	        	
 	        	//SD kártyára lementés
 	        	/*String pictureFile = Environment.getExternalStorageDirectory().getPath()+"/custom_photos"+"/__1.jpg";
@@ -71,15 +76,6 @@ public class MainActivity extends Activity {
 	            
 	            Intent intent = new Intent(MainActivity.this, SendImageService.class);
 				intent.putExtra("BYTE_ARRAY", data);
-				/*synchronized(this)
-				{
-					try {
-						wait();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}*/
 				intent.putExtra("TIMESTAMP", millis_since_midnight);
 				startService(intent);            	            
 	        }
@@ -90,15 +86,12 @@ public class MainActivity extends Activity {
 	    	@Override
 	    	public void onShutter()
 	    	{
+	    		MeasuredTimeValues.CurrentTickCountIn_onShutter = Core.getTickCount();
+	    		MeasuredTimeValues.FrequIn_onShutter = Core.getTickFrequency();
+	    		
 	    		right_now = Calendar.getInstance();
 	    		millis_since_midnight = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
-	            current_time = String.valueOf(millis_since_midnight); 
-	    		
-	           /* synchronized(this)
-				{
-					notify();
-				}*/
-	    		
+	            current_time = String.valueOf(millis_since_midnight); 	    		
 	    		Message m = new Message();
 	            m.what = TIME_ID;
 	            //m.obj = millis_since_midnight;
@@ -112,31 +105,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
-		
-		//String timebuff = rightNow.getInstance();
-		
-		// EZ ROSSZ!!!!!!!!
-		/*last_midnight = Calendar.getInstance();
-		//rightNow.set(0, 0, 0);
-		int year = last_midnight.get(Calendar.YEAR);
-		int month = last_midnight.get(Calendar.MONTH);
-		int day = last_midnight.get(Calendar.DAY_OF_MONTH);
-		last_midnight.set(year,month,day,0,0); //ms 1970 óta
-		
-		long[] midnight_array = new long[20];*/
-		
-		/*for(int i=0; i<20; i++)
-		{
-			last_midnight = Calendar.getInstance();
-			//rightNow.set(0, 0, 0);
-			year = last_midnight.get(Calendar.YEAR);
-			month = last_midnight.get(Calendar.MONTH);
-			day = last_midnight.get(Calendar.DAY_OF_MONTH);
-			last_midnight.set(year,month,day,0,0); //ms 1970 óta
-			midnight_array[i]= last_midnight.getTimeInMillis();
-		}*/
-		
+			
 		right_now = Calendar.getInstance();
 		calendar_offset = right_now.get(Calendar.ZONE_OFFSET) + right_now.get(Calendar.DST_OFFSET);
 		
@@ -186,7 +155,7 @@ public class MainActivity extends Activity {
 		myCommsThread.start();	
 	}
 
-    private static final String  TAG = "TMEAS";
+	private static final String  TAG = "TMEAS";
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -196,7 +165,7 @@ public class MainActivity extends Activity {
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
 
-                    double freq = Core.getTickFrequency();	// May change!!! OK to poll it every time? (And accept is equals at begin and end...) 
+                    /*double freq = Core.getTickFrequency();	// May change!!! OK to poll it every time? (And accept is equals at begin and end...) 
                     Log.i(TAG,"getTickFrequency() == "+freq);
                     long prevTickCount = 0;
                     for(int i=0; i<10; i++)
@@ -205,7 +174,7 @@ public class MainActivity extends Activity {
                         long delta = currentTickCount - prevTickCount;
                         prevTickCount = currentTickCount;
                         Log.i(TAG,"delta getTickCount() == "+delta);
-                    }
+                    }*/
                 } break;
                 default:
                 {
