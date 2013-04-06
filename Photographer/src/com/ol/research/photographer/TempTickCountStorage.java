@@ -1,5 +1,7 @@
 package com.ol.research.photographer;
 
+import org.opencv.core.Core;
+
 import android.util.Log;
 
 /**
@@ -19,48 +21,85 @@ import android.util.Log;
  *  Warning, TickFrequency may change! TODO: check it at every GetTickCount() ?
  */
 public class TempTickCountStorage {
+	
+	static public boolean isOpenCVLoaded = false;
+	
 	static public long ConnectionReceived;
 	static public long CommandReceived;
+
+	static public long DesiredTimeStamp;	// Received in the command
+	
 	static public long TakingPicture;
 	static public long OnShutterEvent;
 	static public long OnPictureTakenEvent;
 	static public long OnSendingResponse;
+	static public long OnSendingJPEG;
 	static public long OnResponseSent;
 
 	static public double TickFrequency;
 	
 	final static String TAG = "TMEAS";
+	final static String TAGCSV = "TMEAS_CSV";
+	
+	public static long GetTimeStamp()
+	{
+		if (isOpenCVLoaded)
+		{
+			TickFrequency = Core.getTickFrequency();
+			double divider = TickFrequency / 1000000.0;
+			long tick = Core.getCPUTickCount();
+			long timestamp = (long)(Math.round(tick / divider));
+			return timestamp;	// Returns in microseconds
+		}
+		else
+		{
+			return 0;
+		}
+	}
 
 	public static void WriteToLog() {
+		double divider = TickFrequency / 1000000.0;
+
 		Log.i(TAG,"TickFrequency: "+TickFrequency);
 		Log.i(TAG,"ConnectionReceived: "+ConnectionReceived);
 		Log.i(TAG,"CommandReceived: "+CommandReceived);
+		Log.i(TAG,"(DesiredTimeStamp: "+DesiredTimeStamp+")");
 		Log.i(TAG,"TakingPicture: "+TakingPicture);
 		Log.i(TAG,"OnShutterEvent: "+OnShutterEvent);
 		Log.i(TAG,"OnPictureTakenEvent: "+OnPictureTakenEvent);
 		Log.i(TAG,"OnSendingResponse: "+OnSendingResponse);
+		Log.i(TAG,"OnSendingJpeg: "+OnSendingJPEG);
 		Log.i(TAG,"OnResponseSent: "+OnResponseSent);
 		
-		double ReceptionMs = (double)(CommandReceived - ConnectionReceived)/TickFrequency;
-		double PreProcessMs = (double)(TakingPicture - CommandReceived)/TickFrequency;
-		double TakePictureMs = (double)(OnShutterEvent - TakingPicture)/TickFrequency;
-		double PostProcessJPEGMs = (double)(OnPictureTakenEvent - OnShutterEvent)/TickFrequency;
-		double PostProcessPostJpegMs = (double)(OnSendingResponse - OnPictureTakenEvent)/TickFrequency;
-		double SendingMs = (double)(OnResponseSent - OnSendingResponse)/TickFrequency;
-		double AllMs = (double)(OnResponseSent - ConnectionReceived)/TickFrequency;
-		double AllNoCommMs = (double)(OnSendingResponse - CommandReceived)/TickFrequency;
+		double ReceptionMs = (double)(CommandReceived - ConnectionReceived)/1000.0;
+		double PreProcessMs = (double)(TakingPicture - CommandReceived)/1000.0;
+		double TakePictureMs = (double)(OnShutterEvent - TakingPicture)/1000.0;
+		double PostProcessJPEGMs = (double)(OnPictureTakenEvent - OnShutterEvent)/1000.0;
+		double PostProcessPostJpegMs = (double)(OnSendingResponse - OnPictureTakenEvent)/1000.0;
+		double SendingJsonMs = (double)(OnSendingJPEG - OnSendingResponse)/1000.0;
+		double SendingJpegMs = (double)(OnResponseSent - OnSendingJPEG)/1000.0;
+		double AllMs = (double)(OnResponseSent - ConnectionReceived)/1000.0;
+		double AllNoCommMs = (double)(OnSendingResponse - CommandReceived)/1000.0;
 		
-		Log.i(TAG,"ReceptionMs: "+ReceptionMs);
-		Log.i(TAG,"PreProcessMs: "+PreProcessMs);
-		Log.i(TAG,"TakePictureMs: "+TakePictureMs);
-		Log.i(TAG,"PostProcessJPEGMs: "+PostProcessJPEGMs);
-		Log.i(TAG,"PostProcessPostJpegMs: "+PostProcessPostJpegMs);
-		Log.i(TAG,"SendingMs: "+SendingMs);
-		Log.i(TAG,"AllMs: "+AllMs);
-		Log.i(TAG,"AllNoCommMs: "+AllNoCommMs);
+		// Delays regarding DesiredTimeStamp
+		double DelayTakePicture = (double)(TakingPicture - DesiredTimeStamp)/1000.0;
+		double DelayOnShutter = (double)(OnShutterEvent - DesiredTimeStamp)/1000.0;
 		
-		Log.i(TAG,"CSV;"+ReceptionMs+";"+PreProcessMs+";"
+		Log.i(TAG,"Reception: "+ReceptionMs);
+		Log.i(TAG,"PreProcess: "+PreProcessMs);
+		Log.i(TAG,"TakePicture: "+TakePictureMs);
+		Log.i(TAG,"PostProcessJPEG: "+PostProcessJPEGMs);
+		Log.i(TAG,"PostProcessPostJpeg: "+PostProcessPostJpegMs);
+		Log.i(TAG,"SendingJson: "+SendingJsonMs);
+		Log.i(TAG,"SendingJpeg: "+SendingJpegMs);
+		Log.i(TAG,"All: "+AllMs);
+		Log.i(TAG,"AllNoComm: "+AllNoCommMs);
+		Log.i(TAG,"DelayTakePicture: "+DelayTakePicture);
+		Log.i(TAG,"DelayOnShutter: "+DelayOnShutter);
+		
+		Log.i(TAGCSV,"CSV;"+ReceptionMs+";"+PreProcessMs+";"
 				+TakePictureMs+";"+PostProcessJPEGMs+";"+PostProcessPostJpegMs+";"
-				+SendingMs+";"+AllMs+";"+AllNoCommMs);
+				+SendingJsonMs+";"+SendingJpegMs+";"+AllMs+";"+AllNoCommMs+";"+DesiredTimeStamp
+				+";"+DelayTakePicture+";"+DelayOnShutter);
 	}
 }

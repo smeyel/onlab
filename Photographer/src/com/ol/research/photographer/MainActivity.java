@@ -46,21 +46,17 @@ public class MainActivity extends Activity {
 	 protected static final int TIME_ID = 0x1338;
 	 
 	 static byte[] lastPhotoData;
-	 static boolean isOpenCVLoaded = false;
 	 
 	// static Calendar last_midnight;
 	 static long calendar_offset;
 	 static Calendar right_now;
-	 static long millis_since_midnight;
+	 static long timestamp;
 	  
 	 private PictureCallback mPicture = new PictureCallback() {
 
 	        @Override
 	        public void onPictureTaken(byte[] data, Camera camera) {
-	        	if (isOpenCVLoaded)
-	        	{
-	        		TempTickCountStorage.OnPictureTakenEvent = Core.getTickCount();
-	        	}
+	        	TempTickCountStorage.OnPictureTakenEvent = TempTickCountStorage.GetTimeStamp();
 	        	//SD kártyára lementés
 	        	/*String pictureFile = Environment.getExternalStorageDirectory().getPath()+"/custom_photos"+"/__1.jpg";
 	            try {
@@ -88,7 +84,7 @@ public class MainActivity extends Activity {
 						e.printStackTrace();
 					}
 				}*/
-				intent.putExtra("TIMESTAMP", millis_since_midnight);
+				intent.putExtra("TIMESTAMP",timestamp);
 				startService(intent);            	            
 	        }
 	    };
@@ -98,13 +94,11 @@ public class MainActivity extends Activity {
 	    	@Override
 	    	public void onShutter()
 	    	{
-	    		if (isOpenCVLoaded)
-	    		{
-	    			TempTickCountStorage.OnShutterEvent = Core.getTickCount();
-	    		}
-	    		right_now = Calendar.getInstance();
-	    		millis_since_midnight = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
-	            current_time = String.valueOf(millis_since_midnight); 
+    			TempTickCountStorage.OnShutterEvent = TempTickCountStorage.GetTimeStamp();
+	    		//right_now = Calendar.getInstance();
+	    		//millis_since_midnight = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
+	    		timestamp = TempTickCountStorage.GetTimeStamp();
+	            current_time = String.valueOf(timestamp); 
 	    		
 	           /* synchronized(this)
 				{
@@ -206,7 +200,7 @@ public class MainActivity extends Activity {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
                 {
-                	isOpenCVLoaded = true;
+                	TempTickCountStorage.isOpenCVLoaded = true;
                     Log.i(TAG, "OpenCV loaded successfully");
 
                     double freq = Core.getTickFrequency();	// May change!!! OK to poll it every time? (And accept is equals at begin and end...) 
@@ -214,10 +208,10 @@ public class MainActivity extends Activity {
                     long prevTickCount = 0;
                     for(int i=0; i<10; i++)
                     {
-                        long currentTickCount = Core.getTickCount();
+                        long currentTickCount = TempTickCountStorage.GetTimeStamp();
                         long delta = currentTickCount - prevTickCount;
                         prevTickCount = currentTickCount;
-                        Log.i(TAG,"delta getTickCount() == "+delta);
+                        Log.i(TAG,"delta microseconds: "+delta);
                     }
                 } break;
                 default:

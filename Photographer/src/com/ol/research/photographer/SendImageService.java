@@ -44,11 +44,12 @@ public class SendImageService extends IntentService{
 	        JSON_message = JSON_message.concat("\"}#");
 	        
 	        // Send data
-            TempTickCountStorage.OnSendingResponse = Core.getTickCount();
+            TempTickCountStorage.OnSendingResponse = TempTickCountStorage.GetTimeStamp();
 	        System.out.println("Sending...");	// TODO: LogCat?
 	        DataOutputStream output = new DataOutputStream(os);     
 	        output.writeUTF(JSON_message);
 	        output.flush();
+            TempTickCountStorage.OnSendingJPEG = TempTickCountStorage.GetTimeStamp();
 	        // ??? Ezt nem az output-ba kellene írni?
 	        os.write(mybytearray,0,mybytearray.length);
 	        
@@ -61,7 +62,7 @@ public class SendImageService extends IntentService{
 	        // Flush output stream
 	        os.flush();
 	        //CommsThread.socket_flag = false;
-            TempTickCountStorage.OnResponseSent = Core.getTickCount();
+            TempTickCountStorage.OnResponseSent = TempTickCountStorage.GetTimeStamp();
 
 	        // Notify CommsThread that data has been sent
 	        Log.i("COMM","Data sent, sending notification to CommsThread...");

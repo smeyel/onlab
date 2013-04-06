@@ -46,10 +46,22 @@ class CommsThread implements Runnable {
 	
 	public void run() {
         
+		// Wait until OpenCV is loaded (needed for time measurement)
+		while(TempTickCountStorage.GetTimeStamp() == 0)
+		{
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException ex)
+			{
+				// Interruption is not a problem...
+			}
+		}
+		
 		//offset measurement
-		right_now = Calendar.getInstance();
+		//right_now = Calendar.getInstance();
 		//long actual_time = right_now.getTimeInMillis() - last_midnight.getTimeInMillis();
-		long actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
+		//long actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
+		long actual_time = TempTickCountStorage.GetTimeStamp();
 		mCamera.takePicture(shutter, null, null);
 		/*long[] timearray = new long[10];
 		for(int i=0; i<5; i++)
@@ -69,7 +81,7 @@ class CommsThread implements Runnable {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		long time_offset = MainActivity.millis_since_midnight - actual_time;
+		long time_offset = MainActivity.timestamp - actual_time;
 		
         try {
         		MainActivity.ss = new ServerSocket(MainActivity.SERVERPORT);
@@ -87,8 +99,7 @@ class CommsThread implements Runnable {
             {          	 	
         		Log.i(TAG, "Waiting for connection...");
                 s = MainActivity.ss.accept();
-                TempTickCountStorage.TickFrequency = Core.getTickFrequency();
-                TempTickCountStorage.ConnectionReceived = Core.getTickCount();
+                TempTickCountStorage.ConnectionReceived = TempTickCountStorage.GetTimeStamp();
                 Log.i(TAG, "Receiving...");
                 is = s.getInputStream();
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -98,18 +109,15 @@ class CommsThread implements Runnable {
                 }
                    
                	String message = new String(bos.toByteArray());
-                TempTickCountStorage.CommandReceived = Core.getTickCount();
+                TempTickCountStorage.CommandReceived = TempTickCountStorage.GetTimeStamp();
                	
                 Log.i(TAG, "Processing...");
                	try {
                		JSONObject jObj = new JSONObject(message);
                		String type = jObj.getString("type");
-               		int desired_timestamp = jObj.getInt("desiredtimestamp");
+               		long desired_timestamp = jObj.getLong("desiredtimestamp");
                		
-    	    		right_now = Calendar.getInstance();
-    	    		actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
-    	            //long time_to_wait = desired_timestamp - (actual_time + time_offset);
-    	    		
+    	    		actual_time = TempTickCountStorage.GetTimeStamp();
     	    		
 	               	if (type.equals("takepicture"))// ----------- TAKE PICTURE command
 	               	{
@@ -119,17 +127,18 @@ class CommsThread implements Runnable {
 	               		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
 	               		}*/
 	                    Log.i(TAG, "Waiting for desired timestamp...");
+	                    TempTickCountStorage.DesiredTimeStamp = desired_timestamp; 
 	               		if(desired_timestamp != 0 && desired_timestamp > actual_time)
 	               		{
 	               			while(desired_timestamp >= (actual_time+time_offset)) //esetleges megoldás: offset kezelése -> (actual_time+300)
 	               			{
-	               				right_now = Calendar.getInstance();
-	               				actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
+	               				actual_time = TempTickCountStorage.GetTimeStamp();
+	               				// TODO: add sleep if the desired timestamp is still far away...
 	               			}
 	               		}
 	                    Log.i(TAG, "Taking picture...");
 	                    isSendComplete = false;	// SendImageService will set this true...
-	                    TempTickCountStorage.TakingPicture = Core.getTickCount();
+	                    TempTickCountStorage.TakingPicture = TempTickCountStorage.GetTimeStamp();
 	               		mCamera.takePicture(shutter, null, mPicture);
 	               		
 	                    Log.i(TAG, "Waiting for sync...");
