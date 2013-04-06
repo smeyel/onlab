@@ -11,6 +11,7 @@ import java.util.Calendar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.opencv.core.Core;
 
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
@@ -85,7 +86,9 @@ class CommsThread implements Runnable {
             try
             {          	 	
         		Log.i(TAG, "Waiting for connection...");
-                s = MainActivity.ss.accept(); 
+                s = MainActivity.ss.accept();
+                TempTickCountStorage.TickFrequency = Core.getTickFrequency();
+                TempTickCountStorage.ConnectionReceived = Core.getTickCount();
                 Log.i(TAG, "Receiving...");
                 is = s.getInputStream();
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -95,6 +98,7 @@ class CommsThread implements Runnable {
                 }
                    
                	String message = new String(bos.toByteArray());
+                TempTickCountStorage.CommandReceived = Core.getTickCount();
                	
                 Log.i(TAG, "Processing...");
                	try {
@@ -125,6 +129,7 @@ class CommsThread implements Runnable {
 	               		}
 	                    Log.i(TAG, "Taking picture...");
 	                    isSendComplete = false;	// SendImageService will set this true...
+	                    TempTickCountStorage.TakingPicture = Core.getTickCount();
 	               		mCamera.takePicture(shutter, null, mPicture);
 	               		
 	                    Log.i(TAG, "Waiting for sync...");
@@ -150,6 +155,8 @@ class CommsThread implements Runnable {
 	               	MainActivity.mClientMsg = message;
 	                Log.i(TAG, "Sending response...");
 	               	handler.sendMessage(m);
+	               	// Save timing info
+	               	TempTickCountStorage.WriteToLog();
                	} catch (JSONException e) {
                     Log.e("JSON Parser", "Error parsing data " + e.toString());
                 }   	

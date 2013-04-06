@@ -4,6 +4,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.opencv.core.Core;
+
 import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
@@ -42,6 +44,7 @@ public class SendImageService extends IntentService{
 	        JSON_message = JSON_message.concat("\"}#");
 	        
 	        // Send data
+            TempTickCountStorage.OnSendingResponse = Core.getTickCount();
 	        System.out.println("Sending...");	// TODO: LogCat?
 	        DataOutputStream output = new DataOutputStream(os);     
 	        output.writeUTF(JSON_message);
@@ -58,6 +61,7 @@ public class SendImageService extends IntentService{
 	        // Flush output stream
 	        os.flush();
 	        //CommsThread.socket_flag = false;
+            TempTickCountStorage.OnResponseSent = Core.getTickCount();
 
 	        // Notify CommsThread that data has been sent
 	        Log.i("COMM","Data sent, sending notification to CommsThread...");
