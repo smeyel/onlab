@@ -10,9 +10,11 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -20,7 +22,7 @@ import com.aut.smeyel.R;
 
 public class MainActivity extends Activity implements CvCameraViewListener2, View.OnTouchListener {
 	
-	private static final String TAG = "Start::OpenCV_Start::Activity";
+	private static final String TAG = "SMEyeL::MainActivity";
 	private CameraBridgeViewBase mOpenCvCameraView;
 	private Mat mRgba;
 	private Mat mGray;
@@ -44,7 +46,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                     mOpenCvCameraView.enableView();
                     
-                    InitMarkerHandler(800, 480);
+//                    InitMarkerHandler(800, 480);
                 } break;
                 default:
                 {
@@ -71,11 +73,23 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	}
 	
 	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case R.id.action_settings:
+			Intent i = new Intent(this, SettingsActivity.class);
+			startActivity(i);
+			break;
+		}
+		return true;
+	}
+	
+	@Override
     public void onPause()
     {
+		super.onPause();
 		if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-        super.onPause();
+		Release();
     }
 
     @Override
@@ -90,6 +104,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
         super.onDestroy();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
+        Release();
     }
 
 	@Override
@@ -97,6 +112,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
 		mGray = new Mat(height, width, CvType.CV_8UC1);
 		mResult = new Mat();
+		InitMarkerHandler(width, height);
 		
 	}
 
@@ -131,5 +147,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	
 	public native void InitMarkerHandler(int width, int height);
 	public native void FastColor(long matAddrInput, long matAddrResult);
+	public native void Release();
 
 }

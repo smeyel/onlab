@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory 
+        android:title="@string/configcat1title"
+        android:key="pref_key_cat1">
+        
+	    <CheckBoxPreference
+	        android:key="pref_config1"
+	        android:title="@string/config1"
+	        android:summary="@string/config1s"
+	        android:defaultValue="true" />
+	    <CheckBoxPreference
+	        android:key="pref_config2"
+	        android:title="@string/config2"
+	        android:summary="@string/config2s"
+	        android:defaultValue="true" />
+    </PreferenceCategory>
+    
+    <PreferenceCategory 
+        android:title="@string/configcat2title"
+        android:key="pref_key_cat2">
+	    
+        <CheckBoxPreference
+	        android:key="pref_config3"
+	        android:title="@string/config3"
+	        android:summary="@string/config3s"
+	        android:defaultValue="true" />
+        
+    </PreferenceCategory>
+</PreferenceScreen>

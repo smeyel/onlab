@@ -66,74 +66,6 @@ public:
 };
 
 
-class MarkerHandler {
-private:
-	Mat *defaultColorCodeFrame;
-	Mat *defaultOverlapMask;
-	Mat *defaultVisColorCodeFrame;
-public:
-	Mat *colorCodeFrame;
-	Mat *overlapMask;
-	Mat *visColorCodeFrame;
-
-	FastColorFilter fastColorFilter;
-	MarkerHandler(){
-		defaultColorCodeFrame = NULL;
-		defaultOverlapMask = NULL;
-		defaultVisColorCodeFrame = NULL;
-	}
-	~MarkerHandler(){
-
-		if (defaultColorCodeFrame != NULL)
-		{
-			if (defaultColorCodeFrame == colorCodeFrame)
-			{
-				colorCodeFrame = NULL;
-			}
-			delete defaultColorCodeFrame;
-			defaultColorCodeFrame = NULL;
-		}
-		if (defaultOverlapMask != NULL)
-		{
-			if (defaultOverlapMask == overlapMask)
-			{
-				overlapMask = NULL;
-			}
-			delete defaultOverlapMask;
-			defaultOverlapMask = NULL;
-		}
-		if (defaultVisColorCodeFrame != NULL)
-		{
-			if (defaultVisColorCodeFrame == visColorCodeFrame)
-			{
-				visColorCodeFrame = NULL;
-			}
-			delete defaultVisColorCodeFrame;
-			defaultVisColorCodeFrame = NULL;
-		}
-
-	}
-	void init(int width, int height){
-		defaultColorCodeFrame = new Mat(height, width,CV_8UC1);
-		defaultOverlapMask = new Mat(height, width,CV_8UC1);
-		defaultVisColorCodeFrame = new Mat(height, width,CV_8UC3);
-
-		colorCodeFrame = defaultColorCodeFrame;
-		overlapMask = defaultOverlapMask;
-		visColorCodeFrame = defaultVisColorCodeFrame;
-
-		fastColorFilter.maskColorCode[0]=COLORCODE_RED;
-		fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
-		fastColorFilter.overlapMask=overlapMask;
-		fastColorFilter.backgroundColorCode=COLORCODE_WHT;
-	}
-	void processFrame(Mat &src){
-		fastColorFilter.FindMarkerCandidates(src,*colorCodeFrame);
-
-		fastColorFilter.VisualizeDecomposedImage(*colorCodeFrame,*visColorCodeFrame);
-	}
-};
-
 extern "C" {
 JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindFeatures(JNIEnv*, jobject, jlong addrGray, jlong addrRgba);
 
@@ -191,7 +123,7 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindCircles(JNIEnv*, job
 }
 
 //MarkerHandler markerHandler;
-TwoColorCircleMarker::MarkerCC2Tracker tracker;
+TwoColorCircleMarker::MarkerCC2Tracker* tracker = NULL;
 ResultExporter resultExporter;
 
 
@@ -201,8 +133,10 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv
 JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject, jint width, jint height)
 {
 	//markerHandler.init(width, height);
-	tracker.setResultExporter(&resultExporter);
-	tracker.init("",true,width,height);
+	tracker = new TwoColorCircleMarker::MarkerCC2Tracker();
+	tracker->setResultExporter(&resultExporter);
+	tracker->init("", true, width, height); // ez sokszor meghivodik (minden resume-kor), memoriaszivargas lehetseges?
+
 
 
 }
@@ -218,18 +152,29 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FastColor(JNIEnv*, jobje
 	cvtColor(mInput, mInputBgr, COLOR_RGBA2BGR);
 
 //	markerHandler.processFrame(mInputBgr);
-	tracker.processFrame(mInputBgr,0,-1.0f);
+	tracker->processFrame(mInputBgr,0,-1.0f);
 
 //	Mat* mOut = markerHandler.visColorCodeFrame;
-	Mat* mOut = tracker.visColorCodeFrame;
+	Mat* mOut = tracker->visColorCodeFrame;
 	cvtColor(*mOut, mResult, COLOR_BGR2RGBA);
 
-	LOGD("ProcessAll: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::ProcessAll));
-	LOGD("FastColorFilter: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::FastColorFilter));
-	LOGD("VisualizeDecomposedImage: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::VisualizeDecomposedImage));
-	LOGD("TwoColorLocator: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::TwoColorLocator));
-	LOGD("LocateMarkers: %f ms", tracker.timeMeasurement->getavgms(TimeMeasurementCodeDefs::LocateMarkers));
+	LOGD("ProcessAll: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::ProcessAll));
+	LOGD("FastColorFilter: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::FastColorFilter));
+	LOGD("VisualizeDecomposedImage: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::VisualizeDecomposedImage));
+	LOGD("TwoColorLocator: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::TwoColorLocator));
+	LOGD("LocateMarkers: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::LocateMarkers));
 	LOGD("---------------------");
+
+}
+
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Release(JNIEnv*, jobject);
+
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Release(JNIEnv*, jobject)
+{
+	if(tracker != NULL) {
+		delete tracker;
+		tracker = NULL;
+	}
 
 }
 }
