@@ -128,14 +128,17 @@ ResultExporter resultExporter;
 
 
 
-JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject, jint width, jint height);
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, jint width, jint height);
 
-JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_InitMarkerHandler(JNIEnv*, jobject, jint width, jint height)
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, jint width, jint height)
 {
 	//markerHandler.init(width, height);
-	tracker = new TwoColorCircleMarker::MarkerCC2Tracker();
-	tracker->setResultExporter(&resultExporter);
-	tracker->init("", true, width, height); // ez sokszor meghivodik (minden resume-kor), memoriaszivargas lehetseges?
+
+	if(tracker == NULL) {
+		tracker = new TwoColorCircleMarker::MarkerCC2Tracker();
+		tracker->setResultExporter(&resultExporter);
+		tracker->init("", true, width, height); // ez sokszor meghivodik (minden resume-kor), memoriaszivargasra figyelni
+	}
 
 
 

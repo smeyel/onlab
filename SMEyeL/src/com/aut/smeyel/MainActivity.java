@@ -112,7 +112,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
 		mGray = new Mat(height, width, CvType.CV_8UC1);
 		mResult = new Mat();
-		InitMarkerHandler(width, height);
+		Init(width, height);
 		
 	}
 
@@ -145,7 +145,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	public native void FindFeatures(long matAddrGr, long matAddrRgba);
 	public native void FindCircles(long matAddrGr, long matAddrRgba);
 	
-	public native void InitMarkerHandler(int width, int height);
+	public native void Init(int width, int height);
 	public native void FastColor(long matAddrInput, long matAddrResult);
 	public native void Release();
 
