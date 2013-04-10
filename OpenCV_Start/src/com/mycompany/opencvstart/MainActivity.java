@@ -20,7 +20,7 @@ import com.mycompany.opencvstart.R;
 
 public class MainActivity extends Activity implements CvCameraViewListener2, View.OnTouchListener {
 	
-	private static final String TAG = "Start::OpenCV_Start::Activity";
+	private static final String TAG = "OpenCV_Start::Activity";
 	private CameraBridgeViewBase mOpenCvCameraView;
 	private Mat mRgba;
 	private Mat mGray;
@@ -69,9 +69,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	@Override
     public void onPause()
     {
+		super.onPause();
 		if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-        super.onPause();
     }
 
     @Override
