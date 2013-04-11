@@ -94,7 +94,11 @@ public:
 		return loglevel;
 	}
 
-	virtual void Log(int aLogLevel, const char *tag, const char *format, ...)=0;
+
+	/** variant of log that takes not a variable argument list but a single va_list pointer */
+	virtual void vlog(int aLogLevel, const char *tag, const char *format, va_list argp)=0;
+
+	virtual void log(int aLogLevel, const char *tag, const char *format, ...)=0;
 
 	static Logger *getInstance(void)
 	{
@@ -105,28 +109,31 @@ public:
 class AndroidLogger : public Logger
 {
 public:
-	virtual void Log(int aLogLevel, const char *tag, const char *format, ...)
+	virtual void vlog(int aLogLevel, const char *tag, const char *format, va_list argp)
 	{
-		if (aLogLevel >= loglevel)
-		{
-
-			int prio = 0;
-			switch(aLogLevel) { // mas sorrend Androidnal a szinteknel!
-				case LOGLEVEL_ERROR: prio = ANDROID_LOG_ERROR; break;
-				default: break;
-			}
-
-
-			va_list args;
-			va_start (args, format);
-			__android_log_vprint(prio, tag, format, args);
-			va_end (args);
+		// filtering not needed here, Android LogCat has built-in filter
+		int prio = 0;
+		switch(aLogLevel) { // mas sorrend Androidnal a szinteknel!
+			case LOGLEVEL_ERROR: prio = ANDROID_LOG_ERROR; break;
+			case LOGLEVEL_WARNING: prio = ANDROID_LOG_WARN; break;
+			case LOGLEVEL_INFO: prio = ANDROID_LOG_INFO; break;
+			case LOGLEVEL_DEBUG: prio = ANDROID_LOG_DEBUG; break;
+			case LOGLEVEL_VERBOSE: prio = ANDROID_LOG_VERBOSE; break;
+			default: break;
 		}
 
+		__android_log_vprint(prio, tag, format, argp);
+	}
+	virtual void log(int aLogLevel, const char *tag, const char *format, ...)
+	{
+		va_list args;
+		va_start (args, format);
+		vlog(aLogLevel, tag, format, args);
+		va_end (args);
 	}
 };
 
-Logger *Logger::instance = new AndroidLogger();
+Logger *Logger::instance = NULL;
 
 
 
@@ -205,8 +212,8 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, j
 		tracker->init("", true, width, height); // ez sokszor meghivodik (minden resume-kor), memoriaszivargasra figyelni
 	}
 
-	AndroidLogger logger();
-	Logger::getInstance()->Log(Logger::LOGLEVEL_ERROR,"TAG","Szam:%d %d %s %d\n",1,2,"Hello",3);
+	AndroidLogger logger = AndroidLogger();
+	Logger::getInstance()->log(Logger::LOGLEVEL_ERROR,"TAG","Szam:%d %d %s %d\n",1,2,"Hello",3);
 
 
 
