@@ -1,6 +1,17 @@
 #include<stdio.h>
 #include<STDARG.H>
 
+#include <android/log.h>
+
+
+#define LOG_TAG "SMEyeL"
+#define LOGV(...) ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
+#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__))
+#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
+
+
 class Logger
 {
 protected:
@@ -81,8 +92,32 @@ public:
 	}
 };
 
+class AndroidLogger : Logger
+{
+public:
+	virtual void Log(int aLogLevel, const char *tag, const char *format, ...)
+	{
+		if (aLogLevel >= loglevel)
+		{
 
-void main()
+			int prio = 0;
+			switch(aLogLevel) { // mas sorrend Androidnal a szinteknel!
+				case LOGLEVEL_ERROR: prio = ANDROID_LOG_ERROR; break;
+				default: break;
+			}
+
+
+			va_list args;
+			va_start (args, format);
+			__android_log_vprint(prio, tag, format, args);
+			va_end (args);
+		}
+
+	}
+};
+
+
+int main()
 {
 	int i=12;
 
@@ -92,4 +127,5 @@ void main()
 	Logger::getInstance()->Log(Logger::LOGLEVEL_ERROR,"TAG","Szam:%d %d %s %d\n",1,2,"Hello",3);
 
 	loggerF.close();
+	return 0;
 }
