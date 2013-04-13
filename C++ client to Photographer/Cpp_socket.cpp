@@ -14,6 +14,7 @@ using namespace std;
 #include <winsock.h>
 #include <io.h>
 
+#include <windows.h>
 
 #define RCVBUFSIZE 8192
 
@@ -50,17 +51,18 @@ void PhoneProxy::RequestPhoto(int desiredTimeStamp)
 {
     char buffer[100];
     int len;
-	sprintf(buffer,"{ \"type\": \"takepicture\", \"desiredtimestamp\": \"%d\" }",desiredTimeStamp);
+	sprintf(buffer,"{ \"type\": \"takepicture\", \"desiredtimestamp\": \"%d\" }#",desiredTimeStamp);
     len = strlen(buffer);
 
     if (send(sock, buffer, len, 0) != len)
         error_exit("send() has sent a different number of bytes than excepted !!!!");
-	int iResult = shutdown(sock, SD_SEND);
+	/*int iResult = shutdown(sock, SD_SEND);
 	if (iResult == SOCKET_ERROR) {
         printf("shutdown failed with error: %d\n", WSAGetLastError());
 		Disconnect();
         return;
-    }
+    }*/
+	return;
 }
 
 void PhoneProxy::RequestPing()
@@ -71,12 +73,13 @@ void PhoneProxy::RequestPing()
 
     if (send(sock, cmd, len, 0) != len)
         error_exit("send() has sent a different number of bytes than expected !!!!");
-	int iResult = shutdown(sock, SD_SEND);
+	/*int iResult = shutdown(sock, SD_SEND);
 	if (iResult == SOCKET_ERROR) {
         printf("shutdown failed with error: %d\n", WSAGetLastError());
 		Disconnect();
         return;
-    }
+    }*/
+	return;
 }
 
 void PhoneProxy::Receive(char *filename)
@@ -240,7 +243,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 
 int main( int argc, char *argv[])
 {
-	char *ip = "152.66.173.64";
+	char *ip = "192.168.245.101";
 	int port = 6000;
 	PhoneProxy proxy;
 
@@ -254,13 +257,23 @@ int main( int argc, char *argv[])
 	proxy.Disconnect();*/
 
 	proxy.Connect(ip,port);
-	proxy.RequestPhoto(0);
+	/*proxy.RequestPhoto(0);
 	proxy.Receive("d:\\temp\\image1.jpg");
 	//proxy.ReceiveDebug();
 	//proxy.Disconnect();
-	proxy.Connect(ip,port);
+	//proxy.Connect(ip,port);
 	proxy.RequestPhoto(0);
 	proxy.Receive("d:\\temp\\image2.jpg");
+	proxy.RequestPhoto(0);
+	proxy.Receive("d:\\temp\\image3.jpg");*/
+
+	for(int i=0; i<=5;i++)
+	{
+		Sleep(1000);
+		sprintf(tmpBuff,"d:\\temp\\image%d.jpg",i);
+		proxy.RequestPhoto(0);
+		proxy.Receive(tmpBuff);
+	}
 
 	proxy.Disconnect();
 	cout << "Press enter to finish..." << endl;

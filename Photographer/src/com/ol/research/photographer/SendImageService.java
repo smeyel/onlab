@@ -71,12 +71,21 @@ public class SendImageService extends IntentService{
 	        	CommsThread.isSendComplete = true;
 	        	CommsThread.s.notifyAll();
 	   		}
-        
-        
+	        //super.onDestroy();
+	        
+	        
 		} catch (IOException e) {
             e.printStackTrace();
             
 		} 
+		finally{
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		// Send response
 		/*Intent respIntent = new Intent(MainActivity.KEY_REST_FILTER);
 		respIntent.putExtra(MainActivity.KEY_REST_RESPONSE, result);

@@ -62,7 +62,7 @@ class CommsThread implements Runnable {
 		//long actual_time = right_now.getTimeInMillis() - last_midnight.getTimeInMillis();
 		//long actual_time = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
 		long actual_time = TempTickCountStorage.GetTimeStamp();
-		mCamera.takePicture(shutter, null, null);
+		//mCamera.takePicture(shutter, null, null);
 		/*long[] timearray = new long[10];
 		for(int i=0; i<5; i++)
 		{
@@ -89,112 +89,119 @@ class CommsThread implements Runnable {
             e.printStackTrace();
         }
         
+        s = null;
+    	Message m = new Message();
+        InputStream is = null;
+        OutputStream out = null;
+        m.what = MainActivity.MSG_ID;
+        try
+        {          	 	
+    		Log.i(TAG, "Waiting for connection...");
+            s = MainActivity.ss.accept();
+            TempTickCountStorage.ConnectionReceived = TempTickCountStorage.GetTimeStamp();
+            Log.i(TAG, "Receiving...");
+            is = s.getInputStream();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            int ch=0;
+        
+        
         while (!Thread.currentThread().isInterrupted()) {
-        	s = null;
-        	Message m = new Message();
-            InputStream is = null;
-            OutputStream out = null;
-            m.what = MainActivity.MSG_ID;
-            try
-            {          	 	
-        		Log.i(TAG, "Waiting for connection...");
-                s = MainActivity.ss.accept();
-                TempTickCountStorage.ConnectionReceived = TempTickCountStorage.GetTimeStamp();
-                Log.i(TAG, "Receiving...");
-                is = s.getInputStream();
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                int ch;
-                while ((ch=is.read())!=-1) {
-                	bos.write(ch);
-                }
+        	
+            
+                do {
+                	ch=is.read();
+                	if(ch != '#')
+                	{
+                		bos.write(ch);
+                	}
+                }while(ch != '#');
                    
                	String message = new String(bos.toByteArray());
                 TempTickCountStorage.CommandReceived = TempTickCountStorage.GetTimeStamp();
                	
                 Log.i(TAG, "Processing...");
-               	try {
-               		JSONObject jObj = new JSONObject(message);
-               		String type = jObj.getString("type");
-               		long desired_timestamp = jObj.getLong("desiredtimestamp");
-               		
-    	    		actual_time = TempTickCountStorage.GetTimeStamp();
-    	    		
-	               	if (type.equals("takepicture"))// ----------- TAKE PICTURE command
-	               	{
-	                    Log.i(TAG, "Cmd: take picture...");
-	               		/*if(time_to_wait>0)
-	               		{
-	               		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
-	               		}*/
-	                    Log.i(TAG, "Waiting for desired timestamp...");
-	                    TempTickCountStorage.StartWait = TempTickCountStorage.GetTimeStamp();
-	                    TempTickCountStorage.DesiredTimeStamp = desired_timestamp; 
-	               		if(desired_timestamp != 0 && desired_timestamp > actual_time)
-	               		{
-	               			// TODO: time_offset is now calculated before OpenCV initializes, so
-	               			//	its value is of no meaning... should be fixed later.
+           		JSONObject jObj = new JSONObject(message);
+           		String type = jObj.getString("type");
+           		long desired_timestamp = jObj.getLong("desiredtimestamp");
+           		
+	    		actual_time = TempTickCountStorage.GetTimeStamp();
+	    		
+               	if (type.equals("takepicture"))// ----------- TAKE PICTURE command
+               	{
+                    Log.i(TAG, "Cmd: take picture...");
+               		/*if(time_to_wait>0)
+               		{
+               		Thread.sleep(time_to_wait); //sleep-nél is ugyanúgy megjelenik a kb 300ms-os késés 
+               		}*/
+                    Log.i(TAG, "Waiting for desired timestamp...");
+                    TempTickCountStorage.StartWait = TempTickCountStorage.GetTimeStamp();
+                    TempTickCountStorage.DesiredTimeStamp = desired_timestamp; 
+               		if(desired_timestamp != 0 && desired_timestamp > actual_time)
+               		{
+               			// TODO: time_offset is now calculated before OpenCV initializes, so
+               			//	its value is of no meaning... should be fixed later.
 //	               			while(desired_timestamp >= (actual_time+time_offset))
-	               			while(desired_timestamp >= actual_time) //esetleges megoldás: offset kezelése -> (actual_time+300)
-	               			{
-	               				actual_time = TempTickCountStorage.GetTimeStamp();
-	               				// TODO: add sleep if the desired timestamp is still far away...
-	               			}
+               			while(desired_timestamp >= actual_time) //esetleges megoldás: offset kezelése -> (actual_time+300)
+               			{
+               				actual_time = TempTickCountStorage.GetTimeStamp();
+               				// TODO: add sleep if the desired timestamp is still far away...
+               			}
+               		}
+                    Log.i(TAG, "Taking picture...");
+                    isSendComplete = false;	// SendImageService will set this true...
+                    TempTickCountStorage.TakingPicture = TempTickCountStorage.GetTimeStamp();
+               		mCamera.takePicture(shutter, null, mPicture);
+               		
+                    Log.i(TAG, "Waiting for sync...");
+                    while(!isSendComplete)
+                    {
+	               		synchronized (s)
+	               		{
+	               			// Wait() may also be interrupted,
+	               			// does not necessarily mean that send is complete.
+	               			s.wait();
 	               		}
-	                    Log.i(TAG, "Taking picture...");
-	                    isSendComplete = false;	// SendImageService will set this true...
-	                    TempTickCountStorage.TakingPicture = TempTickCountStorage.GetTimeStamp();
-	               		mCamera.takePicture(shutter, null, mPicture);
-	               		
-	                    Log.i(TAG, "Waiting for sync...");
-	                    while(!isSendComplete)
-	                    {
-		               		synchronized (s)
-		               		{
-		               			// Wait() may also be interrupted,
-		               			// does not necessarily mean that send is complete.
-		               			s.wait();
-		               		}
-		               		Log.i(TAG,"Wait() finished");
-	                    }
-	                    Log.i(TAG, "Sync received, data sent.");
-	               	} else if(type.equals("ping"))	// ----------- PING command
-	               	{
-	                    Log.i(TAG, "Cmd: ping...");
-	               		out = s.getOutputStream();       
-	                    DataOutputStream output = new DataOutputStream(out);     
-	                    output.writeUTF("pong");
-	                    output.flush();
-	               	}
-	               	MainActivity.mClientMsg = message;
-	                Log.i(TAG, "Sending response...");
-	               	handler.sendMessage(m);
-	               	// Save timing info
-	               	TempTickCountStorage.WriteToLog();
-               	} catch (JSONException e) {
-                    Log.e("JSON Parser", "Error parsing data " + e.toString());
-                }   	
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} /*finally {
-            	if (is != null) {
-            		try {
-						is.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-            	}
-            	if (out != null) {
-            		try {
-						out.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-            	}
-            }*/
+	               		Log.i(TAG,"Wait() finished");
+                    }
+                    Log.i(TAG, "Sync received, data sent.");
+               	} else if(type.equals("ping"))	// ----------- PING command
+               	{
+                    Log.i(TAG, "Cmd: ping...");
+               		out = s.getOutputStream();       
+                    DataOutputStream output = new DataOutputStream(out);     
+                    output.writeUTF("pong");
+                    output.flush();
+               	}
+               	MainActivity.mClientMsg = message;
+                Log.i(TAG, "Sending response...");
+               	handler.sendMessage(m);
+               	// Save timing info
+               	TempTickCountStorage.WriteToLog();
+            }
+       	} catch (JSONException e) {
+            Log.e("JSON Parser", "Error parsing data " + e.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} /*finally {
+        	if (is != null) {
+        		try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        	}
+        	if (out != null) {
+        		try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        	}
+        }*/
         }
         
     }
-}
+
