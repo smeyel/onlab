@@ -1,131 +1,89 @@
-#include<stdio.h>
-#include<STDARG.H>
+#include <stdio.h>
+#include <stdarg.h>
+#include "../include/Logger.h"
 
-#include <android/log.h>
-
-
-#define LOG_TAG "SMEyeL"
-#define LOGV(...) ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__))
-#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
-
-
-class Logger
+namespace Logging
 {
-protected:
-	static Logger *instance;
-	int loglevel;
-public:
-	const static int LOGLEVEL_ERROR = 10;
-	const static int LOGLEVEL_WARNING = 5;
-	const static int LOGLEVEL_DEBUG = 3;
-	const static int LOGLEVEL_VERBOSE = 1;
-	const static int LOGLEVEL_INFO = 0;
 
-	Logger()
+	void Logger::setLogLevel(int _logLevel)
 	{
-		instance=this;
-		loglevel = LOGLEVEL_WARNING;
+		logLevel = _logLevel;
 	}
 
-	void SetLogLevel(int iLogLevel)
+	int Logger::getLogLevel()
 	{
-		loglevel = iLogLevel;
+		return logLevel;
 	}
 
-	int GetLogLevel(void)
+	void Logger::log(int _logLevel, const char *tag, const char *format, ...)
 	{
-		return loglevel;
+		va_list argp;
+		va_start (argp, format);
+
+		if(instance != NULL)
+		{
+			instance->vlog(_logLevel, tag, format, argp);
+		}
+
+		va_end (argp);
 	}
 
-	virtual void Log(int aLogLevel, const char *tag, const char *format, ...)=0;
-
-	static Logger *getInstance(void)
-	{
-		return instance;
+	void Logger::registerLogger(Logger& _logger) {
+		instance = &_logger;
 	}
-};
 
-Logger *Logger::instance=NULL;
+//	Logger* Logger::getInstance() {
+//		return instance;
+//	}
 
-class FileLogger : Logger
-{
-	FILE *F;
-public:
-	FileLogger(char *filename)
+	Logger::~Logger() {}
+
+
+	Logger *Logger::instance = NULL;
+	int Logger::logLevel = Logger::LOGLEVEL_WARNING;
+
+
+
+
+
+	FileLogger::FileLogger(char *filename)
 	{
 		F = fopen(filename,"at");
 	}
-
-	void close()
+	void FileLogger::close()
 	{
 		fflush(F);
 		fclose(F);
 	}
 
-	virtual void Log(int aLogLevel, const char *tag, const char *format, ...)
+	void FileLogger::vlog(int _logLevel, const char *tag, const char *format, va_list argp)
 	{
-		if (aLogLevel >= loglevel)
+		if (_logLevel >= logLevel)
 		{
-			va_list args;
-			va_start (args, format);
-			vfprintf (F, format, args);
-			va_end (args);
+			vfprintf (F, format, argp);
 		}
 	}
-};
 
-class StdoutLogger : Logger
-{
-public:
-	virtual void Log(int aLogLevel, const char *tag, const char *format, ...)
+	void StdoutLogger::vlog(int _logLevel, const char *tag, const char *format, va_list argp)
 	{
-		if (aLogLevel >= loglevel)
+		if (_logLevel >= logLevel)
 		{
-			va_list args;
-			va_start (args, format);
-			vfprintf (stdout, format, args);
-			va_end (args);
+			vfprintf (stdout, format, argp);
 		}
 	}
-};
-
-class AndroidLogger : Logger
-{
-public:
-	virtual void Log(int aLogLevel, const char *tag, const char *format, ...)
-	{
-		if (aLogLevel >= loglevel)
-		{
-
-			int prio = 0;
-			switch(aLogLevel) { // mas sorrend Androidnal a szinteknel!
-				case LOGLEVEL_ERROR: prio = ANDROID_LOG_ERROR; break;
-				default: break;
-			}
-
-
-			va_list args;
-			va_start (args, format);
-			__android_log_vprint(prio, tag, format, args);
-			va_end (args);
-		}
-
-	}
-};
-
-
-int main()
-{
-	int i=12;
-
-	FileLogger loggerF("d:\\e3.txt");
-	//StdoutLogger loggerStd;
-
-	Logger::getInstance()->Log(Logger::LOGLEVEL_ERROR,"TAG","Szam:%d %d %s %d\n",1,2,"Hello",3);
-
-	loggerF.close();
-	return 0;
 }
+
+
+//int main()
+//{
+//	using namespace Logging;
+//	int i = 12;
+//
+//	FileLogger loggerF("d:\\e3.txt");
+//	//StdoutLogger loggerStd;
+//
+//	Logger::getInstance()->log(Logger::LOGLEVEL_ERROR,"TAG","Szam:%d %d %s %d\n",1,2,"Hello",3);
+//
+//	loggerF.close();
+//	return 0;
+//}

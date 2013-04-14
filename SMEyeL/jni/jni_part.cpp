@@ -4,23 +4,18 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <vector>
 
-#include <android/log.h>
 #include "libTwoColorCircleMarker/include/FastColorFilter.h"
 #include "libTwoColorCircleMarker/include/MarkerCC2Tracker.h"
 #include "libTwoColorCircleMarker/include/DetectionResultExporterBase.h"
 #include "libTwoColorCircleMarker/include/TimeMeasurementCodeDefines.h"
-//#include "miscLogConfig/src/Logger.cpp"
+#include "miscLogConfig/include/AndroidLogger.h"
 
 #define LOG_TAG "SMEyeL"
-#define LOGV(...) ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__))
-#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
 
 using namespace std;
 using namespace cv;
 using namespace TwoColorCircleMarker;
+using namespace Logging;
 
 const char* stringToCharStar(string str) {
 	const char *cstr = str.c_str();
@@ -65,78 +60,6 @@ public:
 //		stream << endl;
 	}
 };
-
-class Logger
-{
-protected:
-	static Logger *instance;
-	int loglevel;
-public:
-	const static int LOGLEVEL_ERROR = 10;
-	const static int LOGLEVEL_WARNING = 5;
-	const static int LOGLEVEL_DEBUG = 3;
-	const static int LOGLEVEL_VERBOSE = 1;
-	const static int LOGLEVEL_INFO = 0;
-
-	Logger()
-	{
-		instance=this;
-		loglevel = LOGLEVEL_WARNING;
-	}
-
-	void SetLogLevel(int iLogLevel)
-	{
-		loglevel = iLogLevel;
-	}
-
-	int GetLogLevel(void)
-	{
-		return loglevel;
-	}
-
-
-	/** variant of log that takes not a variable argument list but a single va_list pointer */
-	virtual void vlog(int aLogLevel, const char *tag, const char *format, va_list argp)=0;
-
-	virtual void log(int aLogLevel, const char *tag, const char *format, ...)=0;
-
-	static Logger *getInstance(void)
-	{
-		return instance;
-	}
-};
-
-class AndroidLogger : public Logger
-{
-public:
-	virtual void vlog(int aLogLevel, const char *tag, const char *format, va_list argp)
-	{
-		// filtering not needed here, Android LogCat has built-in filter
-		int prio = 0;
-		switch(aLogLevel) { // mas sorrend Androidnal a szinteknel!
-			case LOGLEVEL_ERROR: prio = ANDROID_LOG_ERROR; break;
-			case LOGLEVEL_WARNING: prio = ANDROID_LOG_WARN; break;
-			case LOGLEVEL_INFO: prio = ANDROID_LOG_INFO; break;
-			case LOGLEVEL_DEBUG: prio = ANDROID_LOG_DEBUG; break;
-			case LOGLEVEL_VERBOSE: prio = ANDROID_LOG_VERBOSE; break;
-			default: break;
-		}
-
-		__android_log_vprint(prio, tag, format, argp);
-	}
-	virtual void log(int aLogLevel, const char *tag, const char *format, ...)
-	{
-		va_list args;
-		va_start (args, format);
-		vlog(aLogLevel, tag, format, args);
-		va_end (args);
-	}
-};
-
-Logger *Logger::instance = NULL;
-
-
-
 
 extern "C" {
 JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindFeatures(JNIEnv*, jobject, jlong addrGray, jlong addrRgba);
@@ -213,7 +136,8 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, j
 	}
 
 	AndroidLogger logger = AndroidLogger();
-	Logger::getInstance()->log(Logger::LOGLEVEL_ERROR,"TAG","Szam:%d %d %s %d\n",1,2,"Hello",3);
+	Logger::registerLogger(logger);
+	Logger::log(Logger::LOGLEVEL_ERROR, LOG_TAG, "Szam:%d %d %s %d\n", 1, 2, "Hello", 3);
 
 
 
@@ -236,12 +160,12 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FastColor(JNIEnv*, jobje
 	Mat* mOut = tracker->visColorCodeFrame;
 	cvtColor(*mOut, mResult, COLOR_BGR2RGBA);
 
-	LOGD("ProcessAll: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::ProcessAll));
-	LOGD("FastColorFilter: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::FastColorFilter));
-	LOGD("VisualizeDecomposedImage: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::VisualizeDecomposedImage));
-	LOGD("TwoColorLocator: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::TwoColorLocator));
-	LOGD("LocateMarkers: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::LocateMarkers));
-	LOGD("---------------------");
+//	LOGD("ProcessAll: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::ProcessAll));
+//	LOGD("FastColorFilter: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::FastColorFilter));
+//	LOGD("VisualizeDecomposedImage: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::VisualizeDecomposedImage));
+//	LOGD("TwoColorLocator: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::TwoColorLocator));
+//	LOGD("LocateMarkers: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::LocateMarkers));
+//	LOGD("---------------------");
 
 }
 

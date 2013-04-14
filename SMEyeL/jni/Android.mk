@@ -13,7 +13,9 @@ LOCAL_SRC_FILES := jni_part.cpp \
                    libTwoColorCircleMarker/src/MarkerCC2Locator.cpp \
                    libTwoColorCircleMarker/src/MarkerCC2Tracker.cpp \
                    libTwoColorCircleMarker/src/TwoColorLocator.cpp \
-                   miscLogConfig/src/ConfigReader.cpp
+                   miscLogConfig/src/ConfigReader.cpp \
+                   miscLogConfig/src/Logger.cpp \
+                   miscLogConfig/src/AndroidLogger.cpp
 LOCAL_LDLIBS +=  -llog -ldl
 
 include $(BUILD_SHARED_LIBRARY)
