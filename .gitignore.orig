@@ -5,13 +5,18 @@ bin/
 gen/
 libs/
 proguard.cfg
+<<<<<<< onlab/Kristof_M2
 *.png
+=======
+>>>>>>> local
 *.txt
 C++ client to Photographer/Debug/*.*
 C++ client to Photographer/DummySmartphone/Debug/*.*
-OpenCV-2.4.4-android-sdk/*.*
-OpenCV-2.4.4-android-sdk
 *.sdf
 *.opensdf
 *.suo
 *.ipch
+<<<<<<< onlab/Kristof_M2
+=======
+OpenCV-2.4.4-android-sdk/*.*
+>>>>>>> local

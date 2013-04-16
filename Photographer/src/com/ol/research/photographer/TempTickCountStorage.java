@@ -4,6 +4,11 @@ import org.opencv.core.Core;
 
 import android.util.Log;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Vector;
+
 /**
  * Temporal storage of tick counts for time measurement.
  * Used to collect data during picture taking and to avoid
@@ -30,6 +35,7 @@ public class TempTickCountStorage {
 	static public long StartWait;
 	static public long DesiredTimeStamp;	// Received in the command
 	
+	//static public Vector<Long> TakingPicture;
 	static public long TakingPicture;
 	static public long OnShutterEvent;
 	static public long OnPictureTakenEvent;
@@ -73,6 +79,7 @@ public class TempTickCountStorage {
 		Log.i(TAG,"OnSendingJpeg: "+OnSendingJPEG);
 		Log.i(TAG,"OnResponseSent: "+OnResponseSent);
 		
+		
 		double ReceptionMs = (double)(CommandReceived - ConnectionReceived)/1000.0;
 		double PreProcessMs = (double)(StartWait - CommandReceived)/1000.0;
 		double WaitingMs = (double)(TakingPicture - StartWait)/1000.0;
@@ -105,5 +112,21 @@ public class TempTickCountStorage {
 				+TakePictureMs+";"+PostProcessJPEGMs+";"+PostProcessPostJpegMs+";"
 				+SendingJsonMs+";"+SendingJpegMs+";"+AllMs+";"+AllNoCommMs+";"+DesiredTimeStamp
 				+";"+DelayTakePicture+";"+DelayOnShutter);
+	}
+	
+	public static void SendToPC() 
+	{
+		try{
+			OutputStream os = CommsThread.s.getOutputStream();
+	        String JSON_message = new String("{\"type\":\"Log\"}#");
+	        DataOutputStream output = new DataOutputStream(os);     
+	        output.writeUTF(JSON_message);
+	        output.flush();
+	        
+		}
+		catch(IOException e)
+		{
+			//TODO exception handling
+		}
 	}
 }

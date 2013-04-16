@@ -243,7 +243,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 
 int main( int argc, char *argv[])
 {
-	char *ip = "192.168.245.101";
+	char *ip = "152.66.169.66";
 	int port = 6000;
 	PhoneProxy proxy;
 
@@ -267,13 +267,17 @@ int main( int argc, char *argv[])
 	proxy.RequestPhoto(0);
 	proxy.Receive("d:\\temp\\image3.jpg");*/
 
-	for(int i=0; i<=5;i++)
+	/*for(int i=0; i<=5;i++)
 	{
-		Sleep(1000);
+		Sleep(1500);
 		sprintf(tmpBuff,"d:\\temp\\image%d.jpg",i);
 		proxy.RequestPhoto(0);
 		proxy.Receive(tmpBuff);
-	}
+	}*/
+	proxy.RequestPhoto(0);
+	proxy.Receive(tmpBuff);
+	proxy.RequestPhoto(0);
+	proxy.Receive(tmpBuff);
 
 	proxy.Disconnect();
 	cout << "Press enter to finish..." << endl;

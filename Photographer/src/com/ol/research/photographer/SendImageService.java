@@ -45,7 +45,7 @@ public class SendImageService extends IntentService{
 	        
 	        // Send data
             TempTickCountStorage.OnSendingResponse = TempTickCountStorage.GetTimeStamp();
-	        System.out.println("Sending...");	// TODO: LogCat?
+	        Log.i("COMM","Sending JSON and image to PC");
 	        DataOutputStream output = new DataOutputStream(os);     
 	        output.writeUTF(JSON_message);
 	        output.flush();
@@ -61,7 +61,6 @@ public class SendImageService extends IntentService{
 
 	        // Flush output stream
 	        os.flush();
-	        //CommsThread.socket_flag = false;
             TempTickCountStorage.OnResponseSent = TempTickCountStorage.GetTimeStamp();
 
 	        // Notify CommsThread that data has been sent
@@ -78,17 +77,13 @@ public class SendImageService extends IntentService{
             e.printStackTrace();
             
 		} 
-		finally{
+		/*finally{
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
-		// Send response
-		/*Intent respIntent = new Intent(MainActivity.KEY_REST_FILTER);
-		respIntent.putExtra(MainActivity.KEY_REST_RESPONSE, result);
-	    LocalBroadcastManager.getInstance(this).sendBroadcast(respIntent);*/
+		}*/
 	}
 }

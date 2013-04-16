@@ -32,9 +32,9 @@ class CommsThread implements Runnable {
 	
     private static final String TAG = "COMM";
 	
-	Calendar right_now;
+	//Calendar right_now;
 //	Calendar last_midnight = MainActivity.last_midnight;
-	long calendar_offset = MainActivity.calendar_offset;
+//	long calendar_offset = MainActivity.calendar_offset;
 	
 	public CommsThread(Handler hand, Camera mCamera, PictureCallback mPicture, ShutterCallback shutter)
 	{
@@ -90,10 +90,10 @@ class CommsThread implements Runnable {
         }
         
         s = null;
-    	Message m = new Message();
+    	
         InputStream is = null;
         OutputStream out = null;
-        m.what = MainActivity.MSG_ID;
+        
         try
         {          	 	
     		Log.i(TAG, "Waiting for connection...");
@@ -107,7 +107,8 @@ class CommsThread implements Runnable {
         
         while (!Thread.currentThread().isInterrupted()) {
         	
-            
+	        	Message m = new Message(); //TODO: message.optain
+	        	m.what = MainActivity.MSG_ID;
                 do {
                 	ch=is.read();
                 	if(ch != '#')
@@ -149,8 +150,9 @@ class CommsThread implements Runnable {
                		}
                     Log.i(TAG, "Taking picture...");
                     isSendComplete = false;	// SendImageService will set this true...
+                    //TempTickCountStorage.TakingPicture.add(TempTickCountStorage.GetTimeStamp());
                     TempTickCountStorage.TakingPicture = TempTickCountStorage.GetTimeStamp();
-               		mCamera.takePicture(shutter, null, mPicture);
+                    mCamera.takePicture(shutter, null, mPicture);
                		
                     Log.i(TAG, "Waiting for sync...");
                     while(!isSendComplete)

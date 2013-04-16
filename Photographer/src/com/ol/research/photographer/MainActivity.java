@@ -48,8 +48,8 @@ public class MainActivity extends Activity {
 	 static byte[] lastPhotoData;
 	 
 	// static Calendar last_midnight;
-	 static long calendar_offset;
-	 static Calendar right_now;
+	// static long calendar_offset;
+	// static Calendar right_now;
 	 static long timestamp;
 	  
 	 private PictureCallback mPicture = new PictureCallback() {
@@ -95,16 +95,9 @@ public class MainActivity extends Activity {
 	    	public void onShutter()
 	    	{
     			TempTickCountStorage.OnShutterEvent = TempTickCountStorage.GetTimeStamp();
-	    		//right_now = Calendar.getInstance();
-	    		//millis_since_midnight = (right_now.getTimeInMillis() + calendar_offset) % (24 * 60 * 60 * 1000);
 	    		timestamp = TempTickCountStorage.GetTimeStamp();
 	            current_time = String.valueOf(timestamp); 
-	    		
-	           /* synchronized(this)
-				{
-					notify();
-				}*/
-	    		
+	    		    		
 	    		Message m = new Message();
 	            m.what = TIME_ID;
 	            //m.obj = millis_since_midnight;
@@ -120,31 +113,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		
 		
-		//String timebuff = rightNow.getInstance();
-		
-		// EZ ROSSZ!!!!!!!!
-		/*last_midnight = Calendar.getInstance();
-		//rightNow.set(0, 0, 0);
-		int year = last_midnight.get(Calendar.YEAR);
-		int month = last_midnight.get(Calendar.MONTH);
-		int day = last_midnight.get(Calendar.DAY_OF_MONTH);
-		last_midnight.set(year,month,day,0,0); //ms 1970 óta
-		
-		long[] midnight_array = new long[20];*/
-		
-		/*for(int i=0; i<20; i++)
-		{
-			last_midnight = Calendar.getInstance();
-			//rightNow.set(0, 0, 0);
-			year = last_midnight.get(Calendar.YEAR);
-			month = last_midnight.get(Calendar.MONTH);
-			day = last_midnight.get(Calendar.DAY_OF_MONTH);
-			last_midnight.set(year,month,day,0,0); //ms 1970 óta
-			midnight_array[i]= last_midnight.getTimeInMillis();
-		}*/
-		
-		right_now = Calendar.getInstance();
-		calendar_offset = right_now.get(Calendar.ZONE_OFFSET) + right_now.get(Calendar.DST_OFFSET);
+	//	right_now = Calendar.getInstance();
+	//	calendar_offset = right_now.get(Calendar.ZONE_OFFSET) + right_now.get(Calendar.DST_OFFSET);
 		
 		final Button btnHttpGet = (Button) findViewById(R.id.btnHttpGet);
 		btnHttpGet.setOnClickListener(new OnClickListener(){
