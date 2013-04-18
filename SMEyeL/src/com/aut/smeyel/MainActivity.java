@@ -11,7 +11,9 @@ import org.opencv.core.Mat;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -60,6 +62,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		PreferenceManager.setDefaultValues(this, R.xml.settingsscreen, false);
+		
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+//		boolean b = sharedPref.getBoolean("pref_config1", true);
 		
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.opencv_start_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
