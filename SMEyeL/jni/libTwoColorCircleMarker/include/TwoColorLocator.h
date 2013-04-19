@@ -5,7 +5,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include "FastColorFilter.h"
-#include "ConfigManagerBase.h"
+#include "../../libMiscTimeAndConfig/include/ConfigManagerBase.h"
 
 using namespace cv;
 

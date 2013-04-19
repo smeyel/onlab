@@ -1,7 +1,7 @@
 #include <iostream>
 #include <assert.h>
 
-#include "ConfigManagerBase.h"
+#include "../include/ConfigManagerBase.h"
 
 using namespace MiscTimeAndConfig;
 

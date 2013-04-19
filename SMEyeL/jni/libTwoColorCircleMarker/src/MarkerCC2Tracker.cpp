@@ -1,14 +1,14 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include "MarkerCC2Tracker.h"
+#include "../include/MarkerCC2Tracker.h"
 
 //#include "MarkerCC2.h"
 //
 //#include "MarkerCC2Tracker.h"
 //
-#include "TimeMeasurementCodeDefines.h"
-#include "FastColorFilter.h"
+#include "../include/TimeMeasurementCodeDefines.h"
+#include "../include/FastColorFilter.h"
 //
 //#include "DetectionResultExporterBase.h"
 

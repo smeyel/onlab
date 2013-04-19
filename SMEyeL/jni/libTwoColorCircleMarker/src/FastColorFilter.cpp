@@ -4,7 +4,7 @@
 
 #include <assert.h>
 
-#include "FastColorFilter.h"
+#include "../include/FastColorFilter.h"
 
 using namespace std;
 

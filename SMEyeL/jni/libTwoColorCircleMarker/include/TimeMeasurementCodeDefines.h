@@ -1,7 +1,7 @@
 #ifndef __TIMEMEASUREMENTCODEDEFINES_H_
 #define __TIMEMEASUREMENTCODEDEFINES_H_
 
-#include "TimeMeasurement.h"
+#include "../../libMiscTimeAndConfig/include/TimeMeasurement.h"
 using namespace MiscTimeAndConfig;
 
 namespace TwoColorCircleMarker

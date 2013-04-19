@@ -1,11 +1,11 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include "TwoColorLocator.h"
-#include "MarkerCC2Locator.h"
-#include "MarkerCC2.h"
+#include "../include/TwoColorLocator.h"
+#include "../include/MarkerCC2Locator.h"
+#include "../include/MarkerCC2.h"
 
-#include "DetectionResultExporterBase.h"
+#include "../include/DetectionResultExporterBase.h"
 
 using namespace cv;
 using namespace TwoColorCircleMarker;
