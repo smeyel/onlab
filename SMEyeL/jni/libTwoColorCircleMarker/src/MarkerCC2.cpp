@@ -4,12 +4,12 @@
 #include <opencv2/core/mat.hpp>
 #include <stdlib.h>
 #include <math.h>
-#include "../include/FastColorFilter.h"	// For color codes
-#include "../include/TwoColorLocator.h"
-#include "../include/MarkerCC2.h"
+#include "FastColorFilter.h"	// For color codes
+#include "TwoColorLocator.h"
+#include "MarkerCC2.h"
 
-#include "../include/TimeMeasurementCodeDefines.h"
-#include "../../libMiscTimeAndConfig/include/ConfigManagerBase.h"
+#include "TimeMeasurementCodeDefines.h"
+#include "ConfigManagerBase.h"
 
 #define COLORCODE_INITIAL 254	// Used to indicate no valid value, even no "unrecognized color"
 #define MAXINVALIDCOLORNUM 10	// Line scanning stops after so many pixels with invalid color (used by ellipse fitting)
@@ -21,25 +21,16 @@ using namespace TwoColorCircleMarker;
 // Config manager
 MarkerCC2::ConfigManager MarkerCC2::configManager;
 
-//bool MarkerCC2::ConfigManager::readConfiguration(CSimpleIniA *ini)
-bool MarkerCC2::ConfigManager::readConfiguration()
+bool MarkerCC2::ConfigManager::readConfiguration(CSimpleIniA *ini)
 {
-//	showMarkerCodeOnImageDec = ini->GetBoolValue("MarkerCC2","showMarkerCodeOnImageDec",false,NULL);
-//	showMarkerCodeOnImageHex = ini->GetBoolValue("MarkerCC2","showMarkerCodeOnImageHex",false,NULL);
-//	verboseLineScanning = ini->GetBoolValue("MarkerCC2","verboseLineScanning",false,NULL);
-//	verboseEllipseFitting = ini->GetBoolValue("MarkerCC2","verboseEllipseFitting",false,NULL);
-//	verboseEllipseScanning = ini->GetBoolValue("MarkerCC2","verboseEllipseScanning",false,NULL);
-//	verboseMarkerCodeValidation = ini->GetBoolValue("MarkerCC2","verboseMarkerCodeValidation",false,NULL);
-//	verboseTxt_LineRejectionReason = ini->GetBoolValue("MarkerCC2","verboseTxt_LineRejectionReason",false,NULL);
-//	verboseTxt_MarkerCodeValidation = ini->GetBoolValue("MarkerCC2","verboseTxt_MarkerCodeValidation",false,NULL);
-	showMarkerCodeOnImageDec = true;
-	showMarkerCodeOnImageHex = true;
-	verboseLineScanning = false;
-	verboseEllipseFitting = false;
-	verboseEllipseScanning = false;
-	verboseMarkerCodeValidation = false;
-	verboseTxt_LineRejectionReason = false;
-	verboseTxt_MarkerCodeValidation = false;
+	showMarkerCodeOnImageDec = ini->GetBoolValue("MarkerCC2","showMarkerCodeOnImageDec",false,NULL);
+	showMarkerCodeOnImageHex = ini->GetBoolValue("MarkerCC2","showMarkerCodeOnImageHex",false,NULL);
+	verboseLineScanning = ini->GetBoolValue("MarkerCC2","verboseLineScanning",false,NULL);
+	verboseEllipseFitting = ini->GetBoolValue("MarkerCC2","verboseEllipseFitting",false,NULL);
+	verboseEllipseScanning = ini->GetBoolValue("MarkerCC2","verboseEllipseScanning",false,NULL);
+	verboseMarkerCodeValidation = ini->GetBoolValue("MarkerCC2","verboseMarkerCodeValidation",false,NULL);
+	verboseTxt_LineRejectionReason = ini->GetBoolValue("MarkerCC2","verboseTxt_LineRejectionReason",false,NULL);
+	verboseTxt_MarkerCodeValidation = ini->GetBoolValue("MarkerCC2","verboseTxt_MarkerCodeValidation",false,NULL);
 	return true;	// Successful
 }
 

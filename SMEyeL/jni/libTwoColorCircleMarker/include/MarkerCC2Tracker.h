@@ -8,11 +8,11 @@
 #include "TwoColorLocator.h"
 #include "MarkerCC2Locator.h"
 
-#include "../../libMiscTimeAndConfig/include/TimeMeasurement.h"
+#include "TimeMeasurement.h"
 
 #include "DetectionResultExporterBase.h"
 
-#include "../../libMiscTimeAndConfig/include/ConfigManagerBase.h"
+#include "ConfigManagerBase.h"
 
 using namespace cv;
 using namespace MiscTimeAndConfig;
@@ -37,8 +37,7 @@ namespace TwoColorCircleMarker
 		class ConfigManager : public MiscTimeAndConfig::ConfigManagerBase
 		{
 			// This method is called by init of the base class to read the configuration values.
-//			virtual bool readConfiguration(CSimpleIniA *ini);
-			virtual bool readConfiguration();
+			virtual bool readConfiguration(CSimpleIniA *ini);
 		public:
 			// Show verbose frames
 			bool visualizeColorCodedFrame;

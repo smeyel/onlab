@@ -1,11 +1,11 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include "../include/TwoColorLocator.h"
+#include "TwoColorLocator.h"
 
 #include <assert.h>
 
-#include "../include/TimeMeasurementCodeDefines.h"
+#include "TimeMeasurementCodeDefines.h"
 
 // Maximal distance we look for the border of a rectangle
 #define MAXSCANDISTANCE 100
@@ -14,20 +14,16 @@
 #define MINRECTINTEGRAL 1		// Minimum of integral image sum of a rectangle to be candidate (used with overlapMask)
 
 using namespace cv;
+using namespace std;
 using namespace TwoColorCircleMarker;
 
 // Config manager
-//bool TwoColorLocator::ConfigManager::readConfiguration(CSimpleIniA *ini)
-bool TwoColorLocator::ConfigManager::readConfiguration()
+bool TwoColorLocator::ConfigManager::readConfiguration(CSimpleIniA *ini)
 {
-//	verboseRectConsolidationCandidates = ini->GetBoolValue("TwoColorLocator","verboseRectConsolidationCandidates",false,NULL);
-//	verboseRectConsolidationResults = ini->GetBoolValue("TwoColorLocator","verboseRectConsolidationResults",false,NULL);
-//	verboseTxt_RectConsolidation = ini->GetBoolValue("TwoColorLocator","verboseTxt_RectConsolidation",false,NULL);
-//	verboseTxt_RectConsolidationSummary = ini->GetBoolValue("TwoColorLocator","verboseTxt_RectConsolidationSummary",false,NULL);
-	verboseRectConsolidationCandidates = false;
-	verboseRectConsolidationResults = false;
-	verboseTxt_RectConsolidation = false;
-	verboseTxt_RectConsolidationSummary = false;
+	verboseRectConsolidationCandidates = ini->GetBoolValue("TwoColorLocator","verboseRectConsolidationCandidates",false,NULL);
+	verboseRectConsolidationResults = ini->GetBoolValue("TwoColorLocator","verboseRectConsolidationResults",false,NULL);
+	verboseTxt_RectConsolidation = ini->GetBoolValue("TwoColorLocator","verboseTxt_RectConsolidation",false,NULL);
+	verboseTxt_RectConsolidationSummary = ini->GetBoolValue("TwoColorLocator","verboseTxt_RectConsolidationSummary",false,NULL);
 	return true;	// Successful
 }
 

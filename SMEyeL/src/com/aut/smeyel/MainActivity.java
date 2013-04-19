@@ -68,6 +68,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 //		boolean b = sharedPref.getBoolean("pref_config1", true);
 		
+//		SharedPreferences.Editor editor = sharedPref.edit();
+//		editor.putBoolean("pref_config1", true);
+//		editor.commit();
+		
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.opencv_start_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
 	}

@@ -7,8 +7,8 @@
 #include "MarkerBase.h"
 #include "MarkerCC2Locator.h"
 
-#include "../../libMiscTimeAndConfig/include/TimeMeasurement.h"
-#include "../../libMiscTimeAndConfig/include/ConfigManagerBase.h"
+#include "TimeMeasurement.h"
+#include "ConfigManagerBase.h"
 
 using namespace cv;
 
@@ -28,8 +28,7 @@ namespace TwoColorCircleMarker
 		class ConfigManager : public MiscTimeAndConfig::ConfigManagerBase
 		{
 			// This method is called by init of the base class to read the configuration values.
-//			virtual bool readConfiguration(CSimpleIniA *ini);
-			virtual bool readConfiguration();
+			virtual bool readConfiguration(CSimpleIniA *ini);
 
 		public:
 			bool showMarkerCodeOnImageDec;
@@ -119,7 +118,8 @@ namespace TwoColorCircleMarker
 		// Fits an ellipse on the inner and outer borders of the red circle
 		//	based on the results of findBordersAlongLine calls.
 		void fitBorderEllipses();
-		// Temp variables
+		// Variables used during markercode reading.
+		// May be used for color recognition adjustments.
 		Point RedInnerBorders[8];
 		Point RedOuterBorders[8];
 		RotatedRect innerEllipse;
@@ -134,7 +134,6 @@ namespace TwoColorCircleMarker
 
 		// --- Marker code processing
 		void validateAndConsolidateMarkerCode();
-
 	};
 }
 

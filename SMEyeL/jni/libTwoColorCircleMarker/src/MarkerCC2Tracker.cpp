@@ -1,14 +1,14 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include "../include/MarkerCC2Tracker.h"
+#include "MarkerCC2Tracker.h"
 
 //#include "MarkerCC2.h"
 //
 //#include "MarkerCC2Tracker.h"
 //
-#include "../include/TimeMeasurementCodeDefines.h"
-#include "../include/FastColorFilter.h"
+#include "TimeMeasurementCodeDefines.h"
+#include "FastColorFilter.h"
 //
 //#include "DetectionResultExporterBase.h"
 
@@ -17,11 +17,9 @@ using namespace cv;
 using namespace TwoColorCircleMarker;
 
 // Config manager
-//bool MarkerCC2Tracker::ConfigManager::readConfiguration(CSimpleIniA *ini)
-bool MarkerCC2Tracker::ConfigManager::readConfiguration()
+bool MarkerCC2Tracker::ConfigManager::readConfiguration(CSimpleIniA *ini)
 {
-//	visualizeColorCodedFrame = ini->GetBoolValue("MarkerCC2Tracker","visualizeColorCodedFrame",false,NULL);
-	visualizeColorCodedFrame = true;
+	visualizeColorCodedFrame = ini->GetBoolValue("MarkerCC2Tracker","visualizeColorCodedFrame",false,NULL);
 	return true;	// Successful
 }
 
