@@ -8,6 +8,7 @@
 #include "libTwoColorCircleMarker/include/MarkerCC2Tracker.h"
 #include "libTwoColorCircleMarker/include/DetectionResultExporterBase.h"
 #include "libTwoColorCircleMarker/include/TimeMeasurementCodeDefines.h"
+#include "libMiscTimeAndConfig/include/ConfigManagerBase.h"
 #include "miscLogConfig/include/AndroidLogger.h"
 
 #define LOG_TAG "SMEyeL"
@@ -56,9 +57,38 @@ public:
 //		stream << "FID:" << currentFrameIdx << ",CID:" << currentCamID << " ";
 //		marker->exportToTextStream(&stream);
 //		LOGD("aaaaaamarkerfound");
-		std::cout << "eeeeeeeee";
 //		stream << endl;
+		int valid = marker->isCenterValid ? 1 : 0;
+		Logger::log(Logger::LOGLEVEL_INFO, LOG_TAG, "Position: %f %f Valid: %d\n", marker->center.x, marker->center.y, valid);
 	}
+};
+
+class MyConfigManager : public MiscTimeAndConfig::ConfigManagerBase
+{
+	// This method is called by init of the base class to read the configuration values.
+	virtual bool readConfiguration(CSimpleIniA *ini)
+	{
+		resizeImage = ini->GetBoolValue("Main","resizeImage",false,NULL);
+		showInputImage = ini->GetBoolValue("Main","showInputImage",false,NULL);
+		verboseColorCodedFrame = ini->GetBoolValue("Main","verboseColorCodedFrame",false,NULL);
+		verboseOverlapMask = ini->GetBoolValue("Main","verboseOverlapMask",false,NULL);
+		waitFor25Fps = ini->GetBoolValue("Main","waitFor25Fps",false,NULL);
+		pauseIfNoValidMarkers = ini->GetBoolValue("Main","pauseIfNoValidMarkers",false,NULL);
+		waitKeyPressAtEnd = ini->GetBoolValue("Main","waitKeyPressAtEnd",false,NULL);
+		runMultipleIterations = ini->GetBoolValue("Main","runMultipleIterations",false,NULL);
+		return true;
+	}
+
+public:
+	// --- Settings
+	bool resizeImage;
+	bool pauseIfNoValidMarkers;
+	bool verboseOverlapMask;
+	bool verboseColorCodedFrame;
+	bool showInputImage;
+	bool waitFor25Fps;
+	bool waitKeyPressAtEnd;
+	bool runMultipleIterations;
 };
 
 extern "C" {
@@ -121,6 +151,11 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FindCircles(JNIEnv*, job
 TwoColorCircleMarker::MarkerCC2Tracker* tracker = NULL;
 ResultExporter resultExporter;
 
+MyConfigManager configManager;
+char *configfilename = "/sdcard/testini2.ini";
+
+AndroidLogger* logger = NULL;
+
 
 
 JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, jint width, jint height);
@@ -129,15 +164,20 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, j
 {
 	//markerHandler.init(width, height);
 
+	configManager.init(configfilename);
+//	int ii = configManager.runMultipleIterations ? 1 : 0;
+//	int iii = configManager.waitKeyPressAtEnd ? 1 : 0;
+
+
 	if(tracker == NULL) {
 		tracker = new TwoColorCircleMarker::MarkerCC2Tracker();
 		tracker->setResultExporter(&resultExporter);
-		tracker->init("", true, width, height); // ez sokszor meghivodik (minden resume-kor), memoriaszivargasra figyelni
+		tracker->init(configfilename, true, width, height); // ez sokszor meghivodik (minden resume-kor), memoriaszivargasra figyelni
 	}
 
-	AndroidLogger logger = AndroidLogger();
-	Logger::registerLogger(logger);
-	Logger::log(Logger::LOGLEVEL_ERROR, LOG_TAG, "Szam:%d %d %s %d\n", 1, 2, "Hello", 3);
+	logger = new AndroidLogger();
+	Logger::registerLogger(*logger);
+//	Logger::log(Logger::LOGLEVEL_ERROR, LOG_TAG, "Szam:%d %d %s %d\n", 1, 2, "Hello", 3);
 
 
 
@@ -153,19 +193,18 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_FastColor(JNIEnv*, jobje
 	Mat mInputBgr;
 	cvtColor(mInput, mInputBgr, COLOR_RGBA2BGR);
 
-//	markerHandler.processFrame(mInputBgr);
 	tracker->processFrame(mInputBgr,0,-1.0f);
 
-//	Mat* mOut = markerHandler.visColorCodeFrame;
-	Mat* mOut = tracker->visColorCodeFrame;
-	cvtColor(*mOut, mResult, COLOR_BGR2RGBA);
+//	Mat* mOut = tracker->visColorCodeFrame;
+//	cvtColor(*mOut, mResult, COLOR_BGR2RGBA);
+	cvtColor(mInputBgr, mResult, COLOR_BGR2RGBA);
 
-//	LOGD("ProcessAll: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::ProcessAll));
-//	LOGD("FastColorFilter: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::FastColorFilter));
-//	LOGD("VisualizeDecomposedImage: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::VisualizeDecomposedImage));
-//	LOGD("TwoColorLocator: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::TwoColorLocator));
-//	LOGD("LocateMarkers: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::LocateMarkers));
-//	LOGD("---------------------");
+//	Logger::log(Logger::LOGLEVEL_INFO, LOG_TAG, "ProcessAll: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::ProcessAll));
+//	Logger::log(Logger::LOGLEVEL_INFO, LOG_TAG, "FastColorFilter: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::FastColorFilter));
+//	Logger::log(Logger::LOGLEVEL_INFO, LOG_TAG, "VisualizeDecomposedImage: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::VisualizeDecomposedImage));
+//	Logger::log(Logger::LOGLEVEL_INFO, LOG_TAG, "TwoColorLocator: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::TwoColorLocator));
+//	Logger::log(Logger::LOGLEVEL_INFO, LOG_TAG, "LocateMarkers: %f ms", tracker->timeMeasurement->getavgms(TimeMeasurementCodeDefs::LocateMarkers));
+//	Logger::log(Logger::LOGLEVEL_INFO, LOG_TAG, "---------------------");
 
 }
 
@@ -176,6 +215,11 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Release(JNIEnv*, jobject
 	if(tracker != NULL) {
 		delete tracker;
 		tracker = NULL;
+	}
+
+	if(logger != NULL) {
+		delete logger;
+		logger = NULL;
 	}
 
 }
