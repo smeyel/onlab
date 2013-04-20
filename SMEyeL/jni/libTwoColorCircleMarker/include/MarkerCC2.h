@@ -7,8 +7,8 @@
 #include "MarkerBase.h"
 #include "MarkerCC2Locator.h"
 
-#include "../../libMiscTimeAndConfig/include/TimeMeasurement.h"
-#include "../../libMiscTimeAndConfig/include/ConfigManagerBase.h"
+#include "TimeMeasurement.h"
+#include "ConfigManagerBase.h"
 
 using namespace cv;
 

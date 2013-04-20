@@ -4,12 +4,12 @@
 #include <opencv2/core/mat.hpp>
 #include <stdlib.h>
 #include <math.h>
-#include "../include/FastColorFilter.h"	// For color codes
-#include "../include/TwoColorLocator.h"
-#include "../include/MarkerCC2.h"
+#include "FastColorFilter.h"	// For color codes
+#include "TwoColorLocator.h"
+#include "MarkerCC2.h"
 
-#include "../include/TimeMeasurementCodeDefines.h"
-#include "../../libMiscTimeAndConfig/include/ConfigManagerBase.h"
+#include "TimeMeasurementCodeDefines.h"
+#include "ConfigManagerBase.h"
 
 #define COLORCODE_INITIAL 254	// Used to indicate no valid value, even no "unrecognized color"
 #define MAXINVALIDCOLORNUM 10	// Line scanning stops after so many pixels with invalid color (used by ellipse fitting)

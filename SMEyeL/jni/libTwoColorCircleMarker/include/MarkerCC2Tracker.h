@@ -8,11 +8,11 @@
 #include "TwoColorLocator.h"
 #include "MarkerCC2Locator.h"
 
-#include "../../libMiscTimeAndConfig/include/TimeMeasurement.h"
+#include "TimeMeasurement.h"
 
 #include "DetectionResultExporterBase.h"
 
-#include "../../libMiscTimeAndConfig/include/ConfigManagerBase.h"
+#include "ConfigManagerBase.h"
 
 using namespace cv;
 using namespace MiscTimeAndConfig;

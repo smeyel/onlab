@@ -2,7 +2,7 @@
 #define __ANDROIDLOGGER_H
 
 #include <android/log.h>
-#include "../include/Logger.h"
+#include "Logger.h"
 
 namespace Logging
 {

@@ -1,11 +1,11 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include "../include/TwoColorLocator.h"
+#include "TwoColorLocator.h"
 
 #include <assert.h>
 
-#include "../include/TimeMeasurementCodeDefines.h"
+#include "TimeMeasurementCodeDefines.h"
 
 // Maximal distance we look for the border of a rectangle
 #define MAXSCANDISTANCE 100
