@@ -107,7 +107,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
     public void onResume()
     {
         super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_5, this, mLoaderCallback);
     }
 
     @Override
