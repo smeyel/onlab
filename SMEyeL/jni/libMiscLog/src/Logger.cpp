@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
-#include "../include/Logger.h"
+#include "Logger.h"
 
 namespace Logging
 {
@@ -62,6 +62,10 @@ namespace Logging
 		{
 			vfprintf (F, format, argp);
 		}
+	}
+
+	FileLogger::~FileLogger() {
+		this->close();
 	}
 
 	void StdoutLogger::vlog(int _logLevel, const char *tag, const char *format, va_list argp)

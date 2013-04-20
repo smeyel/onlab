@@ -6,6 +6,13 @@
 
 namespace Logging
 {
+	/** Base class for logging
+	 *  Usage:
+	 *  - have an inherited class which implements the vlog method
+	 *  - register an instance of the inherited class with registerLogger
+	 *  - call log method for logging
+	 *
+	 */
 	class Logger
 	{
 	protected:
@@ -47,6 +54,8 @@ namespace Logging
 		void close();
 
 		virtual void vlog(int _logLevel, const char *tag, const char *format, va_list argp);
+
+		virtual ~FileLogger();
 	};
 
 	class StdoutLogger : public Logger

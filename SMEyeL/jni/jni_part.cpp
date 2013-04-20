@@ -4,12 +4,12 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <vector>
 
-#include "libTwoColorCircleMarker/include/FastColorFilter.h"
-#include "libTwoColorCircleMarker/include/MarkerCC2Tracker.h"
-#include "libTwoColorCircleMarker/include/DetectionResultExporterBase.h"
-#include "libTwoColorCircleMarker/include/TimeMeasurementCodeDefines.h"
-#include "libMiscTimeAndConfig/include/ConfigManagerBase.h"
-#include "miscLogConfig/include/AndroidLogger.h"
+#include "FastColorFilter.h"
+#include "MarkerCC2Tracker.h"
+#include "DetectionResultExporterBase.h"
+#include "TimeMeasurementCodeDefines.h"
+#include "ConfigManagerBase.h"
+#include "AndroidLogger.h"
 
 #define LOG_TAG "SMEyeL"
 
@@ -162,7 +162,9 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, j
 
 JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, jint width, jint height)
 {
-	//markerHandler.init(width, height);
+	logger = new AndroidLogger();
+	Logger::registerLogger(*logger);
+//	Logger::log(Logger::LOGLEVEL_ERROR, LOG_TAG, "Szam:%d %d %s %d\n", 1, 2, "Hello", 3);
 
 	configManager.init(configfilename);
 //	int ii = configManager.runMultipleIterations ? 1 : 0;
@@ -175,9 +177,7 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, j
 		tracker->init(configfilename, true, width, height); // ez sokszor meghivodik (minden resume-kor), memoriaszivargasra figyelni
 	}
 
-	logger = new AndroidLogger();
-	Logger::registerLogger(*logger);
-//	Logger::log(Logger::LOGLEVEL_ERROR, LOG_TAG, "Szam:%d %d %s %d\n", 1, 2, "Hello", 3);
+
 
 
 

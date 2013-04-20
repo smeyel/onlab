@@ -1,5 +1,5 @@
 #include <android/log.h>
-#include "../include/AndroidLogger.h"
+#include "AndroidLogger.h"
 
 namespace Logging
 {
