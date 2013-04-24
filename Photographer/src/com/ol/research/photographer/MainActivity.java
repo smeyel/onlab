@@ -47,16 +47,19 @@ public class MainActivity extends Activity {
 	 
 	 static byte[] lastPhotoData;
 	 
-	// static Calendar last_midnight;
-	// static long calendar_offset;
-	// static Calendar right_now;
-	 static long timestamp;
-	  
+	 static long OnShutterEventTimestamp;
+	 
+	 TimeMeasurement PostProcessJPEGMs = new TimeMeasurement();
+	 static TimeMeasurement PostProcessPostJpegMs = new TimeMeasurement();
+	 
 	 private PictureCallback mPicture = new PictureCallback() {
 
 	        @Override
 	        public void onPictureTaken(byte[] data, Camera camera) {
-	        	TempTickCountStorage.OnPictureTakenEvent = TempTickCountStorage.GetTimeStamp();
+	        	//TempTickCountStorage.OnPictureTakenEvent = TempTickCountStorage.GetTimeStamp();
+	        	CommsThread.ActualResult.PostProcessJPEGMs=PostProcessJPEGMs.TimeMeasurementStop();
+	        	PostProcessPostJpegMs.TimeMeasurementStart();
+	        	
 	        	//SD kártyára lementés
 	        	/*String pictureFile = Environment.getExternalStorageDirectory().getPath()+"/custom_photos"+"/__1.jpg";
 	            try {
@@ -74,17 +77,7 @@ public class MainActivity extends Activity {
 	            Intent intent = new Intent(MainActivity.this, SendImageService.class);
 				//intent.putExtra("BYTE_ARRAY", data);
 	            lastPhotoData = data;
-
-				/*synchronized(this)
-				{
-					try {
-						wait();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}*/
-				intent.putExtra("TIMESTAMP",timestamp);
+				intent.putExtra("TIMESTAMP",OnShutterEventTimestamp);
 				startService(intent);            	            
 	        }
 	    };
@@ -94,13 +87,14 @@ public class MainActivity extends Activity {
 	    	@Override
 	    	public void onShutter()
 	    	{
-    			TempTickCountStorage.OnShutterEvent = TempTickCountStorage.GetTimeStamp();
-	    		timestamp = TempTickCountStorage.GetTimeStamp();
-	            current_time = String.valueOf(timestamp); 
+    			//TempTickCountStorage.OnShutterEvent = TempTickCountStorage.GetTimeStamp();
+	    		CommsThread.ActualResult.TakePictureMs = CommsThread.TakePictureMs.TimeMeasurementStop();
+	    		PostProcessJPEGMs.TimeMeasurementStart();
+	    		OnShutterEventTimestamp = TimeMeasurement.GetTimeStamp();
+	            current_time = String.valueOf(OnShutterEventTimestamp); 
 	    		    		
 	    		Message m = new Message();
 	            m.what = TIME_ID;
-	            //m.obj = millis_since_midnight;
 	            myUpdateHandler.sendMessage(m);
 	    	}
 	    };
@@ -111,10 +105,6 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
-		
-	//	right_now = Calendar.getInstance();
-	//	calendar_offset = right_now.get(Calendar.ZONE_OFFSET) + right_now.get(Calendar.DST_OFFSET);
 		
 		final Button btnHttpGet = (Button) findViewById(R.id.btnHttpGet);
 		btnHttpGet.setOnClickListener(new OnClickListener(){
@@ -170,19 +160,19 @@ public class MainActivity extends Activity {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
                 {
-                	TempTickCountStorage.isOpenCVLoaded = true;
+                	TimeMeasurement.isOpenCVLoaded = true;
                     Log.i(TAG, "OpenCV loaded successfully");
 
-                    double freq = Core.getTickFrequency();	// May change!!! OK to poll it every time? (And accept is equals at begin and end...) 
+                    /*double freq = Core.getTickFrequency();	// May change!!! OK to poll it every time? (And accept is equals at begin and end...) 
                     Log.i(TAG,"getTickFrequency() == "+freq);
                     long prevTickCount = 0;
                     for(int i=0; i<10; i++)
                     {
-                        long currentTickCount = TempTickCountStorage.GetTimeStamp();
+                        long currentTickCount = TimeMeasurement.GetTimeStamp();
                         long delta = currentTickCount - prevTickCount;
                         prevTickCount = currentTickCount;
                         Log.i(TAG,"delta microseconds: "+delta);
-                    }
+                    }*/
                 } break;
                 default:
                 {

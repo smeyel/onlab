@@ -113,20 +113,5 @@ public class TempTickCountStorage {
 				+SendingJsonMs+";"+SendingJpegMs+";"+AllMs+";"+AllNoCommMs+";"+DesiredTimeStamp
 				+";"+DelayTakePicture+";"+DelayOnShutter);
 	}
-	
-	public static void SendToPC() 
-	{
-		try{
-			OutputStream os = CommsThread.s.getOutputStream();
-	        String JSON_message = new String("{\"type\":\"Log\"}#");
-	        DataOutputStream output = new DataOutputStream(os);     
-	        output.writeUTF(JSON_message);
-	        output.flush();
-	        
-		}
-		catch(IOException e)
-		{
-			//TODO exception handling
-		}
-	}
+
 }

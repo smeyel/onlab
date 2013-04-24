@@ -16,7 +16,9 @@ import android.util.Log;
  */
 public class SendImageService extends IntentService{
 	
-	
+	TimeMeasurement PostProcessPostJpegMs = new TimeMeasurement();
+	TimeMeasurement SendingJsonMs = new TimeMeasurement();
+	TimeMeasurement SendingJpegMs = new TimeMeasurement();
 	
 	public SendImageService() 
 	{
@@ -36,20 +38,29 @@ public class SendImageService extends IntentService{
 			
 			long timestamp = intent.getLongExtra("TIMESTAMP", 0);
 	        String buff = Integer.toString(mybytearray.length);
-	        // Assemble JSON message TODO: use StringBuilder!
-	        String JSON_message = new String("{\"type\":\"JPEG\",\"size\":\"");
-	        JSON_message = JSON_message.concat(buff);
-	        JSON_message = JSON_message.concat("\",\"timestamp\":\"");
-	        JSON_message = JSON_message.concat(Long.toString(timestamp));
-	        JSON_message = JSON_message.concat("\"}#");
+	        
+	        StringBuilder sb = new StringBuilder("{\"type\":\"JPEG\",\"size\":\""); 
+	        sb.append(buff);
+	        sb.append("\",\"timestamp\":\"");
+	        sb.append(Long.toString(timestamp));
+	        sb.append("\"}#");
+	        String JSON_message = sb.toString();
+	        
 	        
 	        // Send data
-            TempTickCountStorage.OnSendingResponse = TempTickCountStorage.GetTimeStamp();
+            //TempTickCountStorage.OnSendingResponse = TempTickCountStorage.GetTimeStamp();
+	        CommsThread.ActualResult.PostProcessPostJpegMs = MainActivity.PostProcessPostJpegMs.TimeMeasurementStop();
+	        CommsThread.ActualResult.AllNoCommMs = CommsThread.AllNoCommMs.TimeMeasurementStop();
+	        
+	        SendingJsonMs.TimeMeasurementStart();
 	        Log.i("COMM","Sending JSON and image to PC");
 	        DataOutputStream output = new DataOutputStream(os);     
 	        output.writeUTF(JSON_message);
 	        output.flush();
-            TempTickCountStorage.OnSendingJPEG = TempTickCountStorage.GetTimeStamp();
+            //TempTickCountStorage.OnSendingJPEG = TempTickCountStorage.GetTimeStamp();
+	        CommsThread.ActualResult.SendingJsonMs = SendingJsonMs.TimeMeasurementStop();
+	       // CommsThread.ActualResult.PostProcessPostJpegMs = PostProcessPostJpegMs.TimeMeasurementStop();
+	        SendingJpegMs.TimeMeasurementStart();
 	        // ??? Ezt nem az output-ba kellene írni?
 	        os.write(mybytearray,0,mybytearray.length);
 	        
@@ -61,8 +72,9 @@ public class SendImageService extends IntentService{
 
 	        // Flush output stream
 	        os.flush();
-            TempTickCountStorage.OnResponseSent = TempTickCountStorage.GetTimeStamp();
-
+            //TempTickCountStorage.OnResponseSent = TempTickCountStorage.GetTimeStamp();
+	        CommsThread.ActualResult.SendingJpegMs = SendingJpegMs.TimeMeasurementStop();
+	        CommsThread.ActualResult.AllMs = CommsThread.AllMs.TimeMeasurementStop();
 	        // Notify CommsThread that data has been sent
 	        Log.i("COMM","Data sent, sending notification to CommsThread...");
 	        synchronized (CommsThread.s)

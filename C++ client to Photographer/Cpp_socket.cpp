@@ -38,7 +38,7 @@ public:
 	void Connect(char *ip, int port);
 	void Disconnect();
 
-	void RequestPhoto(int desiredTimeStamp);
+	void RequestPhoto(long long desiredTimeStamp);
 	void RequestPing();
 	void Receive(char *filename);	// For PONG, filename has no effect.
 	void ReceiveDebug();
@@ -47,11 +47,11 @@ private:
 	void ProcessIncomingJSON(int sock,char *buffer, char *filename);
 };
 
-void PhoneProxy::RequestPhoto(int desiredTimeStamp)
+void PhoneProxy::RequestPhoto(long long desiredTimeStamp)
 {
     char buffer[100];
     int len;
-	sprintf(buffer,"{ \"type\": \"takepicture\", \"desiredtimestamp\": \"%d\" }#",desiredTimeStamp);
+	sprintf(buffer,"{ \"type\": \"takepicture\", \"desiredtimestamp\": \"%lld\" }#",desiredTimeStamp);
     len = strlen(buffer);
 
     if (send(sock, buffer, len, 0) != len)
@@ -67,7 +67,7 @@ void PhoneProxy::RequestPhoto(int desiredTimeStamp)
 
 void PhoneProxy::RequestPing()
 {
-	char *cmd = "{ \"type\": \"ping\", \"desiredtimestamp\": \"0\"  }";
+	char *cmd = "{ \"type\": \"ping\", \"desiredtimestamp\": \"0\" }#";
     int len;
     len = strlen(cmd);
 
@@ -243,7 +243,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 
 int main( int argc, char *argv[])
 {
-	char *ip = "152.66.169.66";
+	char *ip = "192.168.245.101";
 	int port = 6000;
 	PhoneProxy proxy;
 
@@ -274,10 +274,11 @@ int main( int argc, char *argv[])
 		proxy.RequestPhoto(0);
 		proxy.Receive(tmpBuff);
 	}*/
-	proxy.RequestPhoto(0);
-	proxy.Receive(tmpBuff);
-	proxy.RequestPhoto(0);
-	proxy.Receive(tmpBuff);
+	//proxy.RequestPhoto(8151784932);
+	//proxy.Receive(tmpBuff);
+	//proxy.RequestPhoto(0);
+	//proxy.Receive(tmpBuff);
+	proxy.RequestPing();
 
 	proxy.Disconnect();
 	cout << "Press enter to finish..." << endl;
