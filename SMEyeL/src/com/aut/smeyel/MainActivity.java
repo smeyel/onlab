@@ -65,7 +65,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 		
 		PreferenceManager.setDefaultValues(this, R.xml.settingsscreen, false);
 		
-		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+//		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 //		boolean b = sharedPref.getBoolean("pref_config1", true);
 		
 //		SharedPreferences.Editor editor = sharedPref.edit();
@@ -123,7 +123,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 		mRgba = new Mat(height, width, CvType.CV_8UC4);
 		mGray = new Mat(height, width, CvType.CV_8UC1);
 		mResult = new Mat();
-		Init(width, height);
+		
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+		String configLocation = sharedPref.getString("pref_configFileLocation", "/sdcard/rossz.ini");
+		Init(width, height, configLocation);
 		
 	}
 
@@ -156,7 +159,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Vie
 	public native void FindFeatures(long matAddrGr, long matAddrRgba);
 	public native void FindCircles(long matAddrGr, long matAddrRgba);
 	
-	public native void Init(int width, int height);
+	public native void Init(int width, int height, String configFileLocation);
 	public native void FastColor(long matAddrInput, long matAddrResult);
 	public native void Release();
 

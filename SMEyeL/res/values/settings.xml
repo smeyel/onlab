@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
-    <string name="configcat1title">Cat1</string>
-    <string name="configcat2title">Cat2</string>
+    <string name="configcat1title">Configuration settings</string>
     
-    <string name="config1">SMEyeL</string>
-    <string name="config1s">SMEyeLs</string>
-    <string name="config2">SMEyeL2</string>
-    <string name="config2s">SMEyeL2s</string>
-    <string name="config3">SMEyeL3</string>
-    <string name="config3s">SMEyeL3s</string>
+    <string name="configUseLocalConfig">Use local configurations</string>
+    <string name="configUseLocalConfigSummary">Use configurations specified here</string>
+    <string name="configFileLocation">Config file location</string>
+    <string name="configFileLocationSummary">Location of the INI file containing configurations</string>
     
 </resources>

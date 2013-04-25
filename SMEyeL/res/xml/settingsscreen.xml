@@ -5,26 +5,16 @@
         android:key="pref_key_cat1">
         
 	    <CheckBoxPreference
-	        android:key="pref_config1"
-	        android:title="@string/config1"
-	        android:summary="@string/config1s"
-	        android:defaultValue="true" />
-	    <CheckBoxPreference
-	        android:key="pref_config2"
-	        android:title="@string/config2"
-	        android:summary="@string/config2s"
-	        android:defaultValue="true" />
+	        android:key="pref_configLocal"
+	        android:title="@string/configUseLocalConfig"
+	        android:summary="@string/configUseLocalConfigSummary"
+	        android:defaultValue="false" />
+	    <EditTextPreference
+	        android:key="pref_configFileLocation"
+	        android:title="@string/configFileLocation"
+	        android:summary="@string/configFileLocationSummary"
+	        android:defaultValue="/sdcard/testini.ini" />
+	    
     </PreferenceCategory>
     
-    <PreferenceCategory 
-        android:title="@string/configcat2title"
-        android:key="pref_key_cat2">
-	    
-        <CheckBoxPreference
-	        android:key="pref_config3"
-	        android:title="@string/config3"
-	        android:summary="@string/config3s"
-	        android:defaultValue="true" />
-        
-    </PreferenceCategory>
 </PreferenceScreen>

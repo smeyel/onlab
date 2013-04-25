@@ -152,16 +152,22 @@ TwoColorCircleMarker::MarkerCC2Tracker* tracker = NULL;
 ResultExporter resultExporter;
 
 MyConfigManager configManager;
-char *configfilename = "/sdcard/testini2.ini";
+//char *configfilename = "/sdcard/testini2.ini";
 
 AndroidLogger* logger = NULL;
 
 
 
-JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, jint width, jint height);
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv* env, jobject thisObj, jint width, jint height, jstring configFileLocation);
 
-JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, jint width, jint height)
+JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv* env, jobject thisObj, jint width, jint height, jstring configFileLocation)
 {
+	const char *configfilenameConst = env->GetStringUTFChars(configFileLocation, 0);
+
+	char configfilename[strlen(configfilenameConst) + 1];
+	strcpy(configfilename, configfilenameConst);
+	env->ReleaseStringUTFChars(configFileLocation, configfilenameConst);
+
 	logger = new AndroidLogger();
 	Logger::registerLogger(*logger);
 //	Logger::log(Logger::LOGLEVEL_ERROR, LOG_TAG, "Szam:%d %d %s %d\n", 1, 2, "Hello", 3);
@@ -176,6 +182,7 @@ JNIEXPORT void JNICALL Java_com_aut_smeyel_MainActivity_Init(JNIEnv*, jobject, j
 		tracker->setResultExporter(&resultExporter);
 		tracker->init(configfilename, true, width, height); // ez sokszor meghivodik (minden resume-kor), memoriaszivargasra figyelni
 	}
+
 
 
 
